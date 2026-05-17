@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  ========================================
+  【配色を変えたいときはここ】
+  --color-primary を変えると、ボタン・リンク強調・一部の背景がまとめて変わります。
+  他の変数も好みで調整してください（コントラストには注意）。
+  ========================================
+*/
+:root {
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-primary: #2563eb;
+  --color-primary-foreground: #ffffff;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-border: #e2e8f0;
+  /* アクセント（バッジや小さな強調に使用） */
+  --color-accent: #0ea5e9;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-slate-900 antialiased;
+}
+
+/* フォーム要素の最低限のフォーカス（アクセシビリティ） */
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-primary;
+}
+
+/*
+  ========================================
+  【アニメーション】
+  - キーフレームと、Reveal コンポーネントから使う出現アニメ用クラス
+  - prefers-reduced-motion ユーザーには動きを抑える（アクセシビリティ）
+  ========================================
+*/
+@keyframes lp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lp-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes lp-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Reveal の初期状態（JS で in-view になるまで非表示） */
+.reveal-init {
+  opacity: 0;
+  transform: translateY(16px);
+  will-change: opacity, transform;
+}
+
+/* Reveal が in-view になった後に付与する状態（フェードイン完了） */
+.reveal-in {
+  animation: lp-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* バリエーション：水平方向のスライドや、フェードのみ */
+.reveal-in-fade {
+  animation: lp-fade-in 0.7s ease-out both;
+}
+
+.reveal-in-scale {
+  animation: lp-scale-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Hero など初期表示でそのまま動かしたい要素向け（IntersectionObserver 不要） */
+.lp-animate-fade-up {
+  animation: lp-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lp-animate-fade-in {
+  animation: lp-fade-in 0.9s ease-out both;
+}
+
+/* delay ユーティリティ（最大 500ms まで／必要なら追加してOK） */
+.lp-delay-100 { animation-delay: 0.1s; }
+.lp-delay-200 { animation-delay: 0.2s; }
+.lp-delay-300 { animation-delay: 0.3s; }
+.lp-delay-400 { animation-delay: 0.4s; }
+.lp-delay-500 { animation-delay: 0.5s; }
+
+/* カードのホバー（微細な浮き上がり） */
+.lp-hover-lift {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+.lp-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -12px rgba(15, 23, 42, 0.18);
+  border-color: var(--color-primary);
+}
+
+/* 「動きを減らす」設定の人には動きを最小化 */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal-init,
+  .reveal-in,
+  .reveal-in-fade,
+  .reveal-in-scale,
+  .lp-animate-fade-up,
+  .lp-animate-fade-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .lp-hover-lift {
+    transition: none !important;
+  }
+}
