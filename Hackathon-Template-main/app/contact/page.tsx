@@ -142,6 +142,13 @@ export default function ContactPage() {
             公式サイトの応募フォームに準拠した項目構成です。入力しても送信されません（ハッカソン後に Formspree や Server Actions に差し替え可能）。
           </p>
 
+          {/*
+            セキュリティ補足：
+            - 各入力の maxLength は、送信実装後のサーバ側で過剰な負荷／DoS 的入力を抑える防御。
+            - autoComplete はブラウザの自動入力 UI を適切に出すための指定。
+            - novalidate にしていないので、ブラウザ側のフォーマット検証（type=email/tel）も有効。
+            - 本実装時は CSRF トークン、サーバ側バリデーション、レート制限の追加を推奨。
+          */}
           <form className="mt-8 space-y-5">
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
@@ -153,6 +160,8 @@ export default function ContactPage() {
                   name="name"
                   type="text"
                   autoComplete="name"
+                  required
+                  maxLength={60}
                   placeholder="山田 花子"
                   className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
                 />
@@ -165,6 +174,8 @@ export default function ContactPage() {
                   id="furigana"
                   name="furigana"
                   type="text"
+                  required
+                  maxLength={80}
                   placeholder="やまだ はなこ"
                   className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
                 />
@@ -181,6 +192,8 @@ export default function ContactPage() {
                   name="email"
                   type="email"
                   autoComplete="email"
+                  required
+                  maxLength={254}
                   placeholder="you@example.com"
                   className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
                 />
@@ -194,6 +207,10 @@ export default function ContactPage() {
                   name="phone"
                   type="tel"
                   autoComplete="tel"
+                  required
+                  maxLength={20}
+                  // ハイフン許容の数字パターン（不正なスクリプト混入抑止）
+                  pattern="[0-9\-\+\(\)\s]+"
                   placeholder="090-1234-5678"
                   className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
                 />
@@ -223,6 +240,8 @@ export default function ContactPage() {
                   id="startDate"
                   name="startDate"
                   type="text"
+                  required
+                  maxLength={60}
                   placeholder="例：2026年7月〜、即日 など"
                   className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
                 />
@@ -238,6 +257,7 @@ export default function ContactPage() {
                 name="address"
                 type="text"
                 autoComplete="street-address"
+                maxLength={200}
                 placeholder="〒150-0043 東京都渋谷区道玄坂…"
                 className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
               />
@@ -284,6 +304,8 @@ export default function ContactPage() {
                 id="career"
                 name="career"
                 rows={4}
+                required
+                maxLength={2000}
                 placeholder="これまでのご職業・担当業務などを簡単にご記入ください。"
                 className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
               />
@@ -297,6 +319,8 @@ export default function ContactPage() {
                 id="message"
                 name="message"
                 rows={5}
+                required
+                maxLength={2000}
                 placeholder="志望動機やアピールしたい点、現状の課題・ご希望のスケジュールなどをご記入ください。"
                 className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
               />
