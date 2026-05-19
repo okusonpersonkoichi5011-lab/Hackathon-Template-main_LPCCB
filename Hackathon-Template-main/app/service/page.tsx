@@ -20,8 +20,8 @@ export default function ServicePage() {
       <Hero
         title="システム／インフラ／ヘルプデスクで、IT 課題の解決を支援します。"
         description="スキルと実務経験の豊富なエンジニアが在籍し、お客様の現場に即したアウトソーシングサービスを提供しています。"
-        primaryCta={{ href: "/contact", label: "お問い合わせ" }}
-        secondaryCta={{ href: "/company", label: "会社案内" }}
+        primaryCta={{ href: "/contact", label: "採用・お問い合わせへ" }}
+        secondaryCta={{ href: "/company", label: "会社案内を見る" }}
       />
 
       <section className="border-b border-border bg-background">
@@ -86,18 +86,12 @@ export default function ServicePage() {
             <p className="mt-3 text-sm text-muted-foreground">
               ベンチャーならではのカジュアルな雰囲気で、和やかな面談を随時行っています。お気軽にお問い合わせください。
             </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Link
-                href="/contact#jobs"
-                className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 hover:-translate-y-0.5 hover:shadow-md"
-              >
-                採用情報を見る
-              </Link>
+            <div className="mt-6 flex justify-center">
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-primary hover:text-primary hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 hover:-translate-y-0.5 hover:shadow-md"
               >
-                お問い合わせへ
+                採用・お問い合わせへ
               </Link>
             </div>
           </Reveal>
