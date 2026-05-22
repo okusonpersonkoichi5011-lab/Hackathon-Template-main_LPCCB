@@ -18,7 +18,7 @@ export function Header() {
    * 現在のページかどうかを判定するヘルパー
    * - "/" は完全一致のみ（前方一致だと全ページがマッチしてしまうため）
    * - その他のページは前方一致（例：/service と /service/foo の両方を active 扱い）
-   * - href にハッシュ（例：/contact#jobs）が付いていてもパス部分のみで比較
+   * - href にハッシュ（例：/recruit#entry）が付いていてもパス部分のみで比較
    */
   const isActive = (href: string): boolean => {
     const path = href.split("#")[0];

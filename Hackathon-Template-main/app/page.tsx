@@ -17,7 +17,7 @@ export default function HomePage() {
         title="専門スキルを持ったエンジニアが、お客様の課題解決を支援します。"
         description="システムエンジニア、インフラエンジニア、ヘルプデスクサポートなどのアウトソーシングサービスをご提供しています。第一線で活躍してきたスペシャリストが、未経験からのキャリア形成も含めて伴走します。"
         primaryCta={{ href: "/service", label: "サービス案内を見る" }}
-        secondaryCta={{ href: "/contact", label: "採用・お問い合わせへ" }}
+        secondaryCta={{ href: "/contact", label: "お問い合わせへ" }}
       />
 
       {/* 会社の特徴 */}
@@ -77,10 +77,16 @@ export default function HomePage() {
           <Reveal delay={100}>
             <div className="mt-10 flex flex-wrap gap-3">
               <Link
-                href="/contact"
-                className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 hover:-translate-y-0.5 hover:shadow-md"
+                href="/recruit"
+                className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 hover:-translate-y-0.5 hover:shadow-md"
               >
-                採用・お問い合わせへ
+                採用情報を見る
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-primary hover:text-primary hover:-translate-y-0.5"
+              >
+                お問い合わせへ
               </Link>
               <Link
                 href="/company"
