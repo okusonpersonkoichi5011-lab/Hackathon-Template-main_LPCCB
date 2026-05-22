@@ -23,8 +23,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# env files
-.env*.local
+# env files（秘密情報の誤コミット防止：.env 系はすべて無視し、例示用のみ許可）
+.env
+.env.*
+!.env.example
 
 # vercel
 .vercel
