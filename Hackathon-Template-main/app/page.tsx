@@ -66,12 +66,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 採用 / 問い合わせへの導線 */}
-      <section className="bg-background">
+      {/* 採用情報への導線 */}
+      <section className="border-b border-border bg-background">
         <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20">
           <SectionTitle
-            eyebrow="Contact"
-            title="採用情報・お問い合わせ"
+            eyebrow="Recruit"
+            title="採用情報"
             description="会社を一緒に盛り上げてくれる仲間を募集しています。未経験からのキャリアアップも、研修とサポートで後押しします。"
           />
           <Reveal delay={100}>
@@ -83,16 +83,37 @@ export default function HomePage() {
                 採用情報を見る
               </Link>
               <Link
-                href="/contact"
-                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-primary hover:text-primary hover:-translate-y-0.5"
-              >
-                お問い合わせへ
-              </Link>
-              <Link
                 href="/company"
                 className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-primary hover:text-primary hover:-translate-y-0.5"
               >
                 会社案内を見る
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* お問い合わせへの導線 */}
+      <section className="bg-surface">
+        <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20">
+          <SectionTitle
+            eyebrow="Contact"
+            title="お問い合わせ"
+            description="サービスや協業に関するご相談をお待ちしています。IT システムやインフラの課題は、まずはお気軽にご相談ください。"
+          />
+          <Reveal delay={100}>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 hover:-translate-y-0.5 hover:shadow-md"
+              >
+                お問い合わせへ
+              </Link>
+              <Link
+                href="/service"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-primary hover:text-primary hover:-translate-y-0.5"
+              >
+                サービス案内を見る
               </Link>
             </div>
           </Reveal>
