@@ -19,7 +19,7 @@ export function Footer() {
                 href={siteConfig.externalLinks.officialSite}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+                className="text-xs text-muted-foreground underline-offset-4 hover:text-slate-900 hover:underline"
               >
                 公式サイト
               </a>
@@ -27,7 +27,7 @@ export function Footer() {
                 href={siteConfig.externalLinks.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+                className="text-xs text-muted-foreground underline-offset-4 hover:text-slate-900 hover:underline"
               >
                 Instagram
               </a>
@@ -43,7 +43,7 @@ export function Footer() {
               <Link
                 key={item.label}
                 href={item.href}
-                className="text-muted-foreground hover:text-primary"
+                className="text-muted-foreground hover:text-slate-900"
               >
                 {item.label}
               </Link>
@@ -58,7 +58,7 @@ export function Footer() {
             <p className="mt-2 text-muted-foreground">
               <a
                 href={siteConfig.contact.phoneTel}
-                className="hover:text-primary"
+                className="hover:text-slate-900"
               >
                 TEL：{siteConfig.contact.phone}
               </a>

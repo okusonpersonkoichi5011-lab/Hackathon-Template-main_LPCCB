@@ -12,13 +12,15 @@
 :root {
   --color-background: #f8fafc;
   --color-surface: #ffffff;
-  --color-primary: #2563eb;
-  --color-primary-foreground: #ffffff;
+  /* ライトパスの基調色（黄色）。ボタン背景・下線・枠線などの「面」に使用 */
+  --color-primary: #ebc528;
+  /* 黄色の上に乗る文字色。明るい黄色に白文字は読めないため濃い黒系にしている */
+  --color-primary-foreground: #0f172a;
   --color-muted: #f1f5f9;
   --color-muted-foreground: #64748b;
   --color-border: #e2e8f0;
-  /* アクセント（バッジや小さな強調に使用） */
-  --color-accent: #0ea5e9;
+  /* アクセント（アイブロウや必須ラベルなど "文字" に使用するため、白背景でも読める黒系） */
+  --color-accent: #0f172a;
 }
 
 html {

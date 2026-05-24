@@ -30,7 +30,7 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link href="/" className="group flex flex-col leading-tight">
-          <span className="text-sm font-semibold text-slate-900 transition group-hover:text-primary">
+          <span className="text-sm font-semibold text-slate-900 transition group-hover:opacity-70">
             {siteConfig.siteName}
           </span>
           <span className="text-xs text-muted-foreground">{siteConfig.siteNameEn}</span>
@@ -46,9 +46,9 @@ export function Header() {
                 key={item.label}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative rounded-md px-2 py-2 text-xs transition hover:bg-muted hover:text-primary md:px-3 md:text-sm ${
+                className={`relative rounded-md px-2 py-2 text-xs transition hover:bg-muted hover:text-slate-900 md:px-3 md:text-sm ${
                   active
-                    ? "font-semibold text-primary after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-primary md:after:left-3 md:after:right-3"
+                    ? "font-semibold text-slate-900 after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-primary md:after:left-3 md:after:right-3"
                     : "text-slate-700"
                 }`}
               >
@@ -70,9 +70,9 @@ export function Header() {
                   key={item.label}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`block rounded-md px-3 py-2 text-sm transition hover:bg-muted hover:text-primary ${
+                  className={`block rounded-md px-3 py-2 text-sm transition hover:bg-muted hover:text-slate-900 ${
                     active
-                      ? "bg-muted font-semibold text-primary"
+                      ? "bg-muted font-semibold text-slate-900"
                       : "text-slate-700"
                   }`}
                 >

@@ -298,7 +298,7 @@ export default function RecruitPage() {
               {/* 採用以外のお問い合わせは /contact へ誘導 */}
               <p className="text-xs text-muted-foreground">
                 採用以外（案件・協業など）のご相談は、
-                <Link href="/contact" className="text-primary underline-offset-2 hover:underline">
+                <Link href="/contact" className="font-medium text-slate-900 underline underline-offset-2 hover:opacity-70">
                   お問い合わせページ
                 </Link>
                 をご利用ください。

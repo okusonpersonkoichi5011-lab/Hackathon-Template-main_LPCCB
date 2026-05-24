@@ -36,7 +36,7 @@ export default function ContactPage() {
           </a>
           <Link
             href="/service"
-            className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-primary hover:text-primary hover:-translate-y-0.5"
+            className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-primary hover:text-slate-900 hover:-translate-y-0.5"
           >
             サービス案内を見る
           </Link>
@@ -51,7 +51,7 @@ export default function ContactPage() {
         {/* 採用希望者を /recruit へ誘導 */}
         <div className="mt-6 rounded-lg border border-dashed border-border bg-muted/40 p-4 text-sm text-muted-foreground">
           採用へのご応募・採用に関するご相談は、
-          <Link href="/recruit" className="text-primary underline-offset-2 hover:underline">
+          <Link href="/recruit" className="font-medium text-slate-900 underline underline-offset-2 hover:opacity-70">
             採用情報ページ
           </Link>
           の専用エントリーフォームをご利用ください。
