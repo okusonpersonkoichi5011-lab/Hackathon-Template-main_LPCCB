@@ -8,6 +8,15 @@
  */
 
 export const siteConfig = {
+  /**
+   * 公開先の本番 URL（末尾スラッシュなし）。
+   * ★重要：公開ドメインが決まったら "ここだけ" 書き換えてください。
+   *   sitemap.xml / robots.txt / OGP / canonical（正規 URL）すべてに自動反映されます。
+   *   例：独自ドメイン "https://light-path.example.jp"
+   *       Vercel 無料 URL  "https://your-project.vercel.app"
+   */
+  siteUrl: "https://example.com",
+
   /** ブラウザのタブや SEO に使われるサイト名（layout.tsx から参照） */
   siteName: "株式会社ライトパス",
 

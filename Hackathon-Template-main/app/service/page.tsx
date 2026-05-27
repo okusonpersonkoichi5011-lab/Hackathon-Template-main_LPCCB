@@ -8,6 +8,15 @@ import { services } from "@/lib/data/services";
 
 export const metadata: Metadata = {
   title: "サービス案内",
+  description:
+    "株式会社ライトパスのサービス案内。システムエンジニア・インフラエンジニア・ヘルプデスクサポートのアウトソーシングで、お客様の IT 課題の解決を支援します。",
+  alternates: { canonical: "/service" },
+  openGraph: {
+    title: "サービス案内 | 株式会社ライトパス",
+    description:
+      "システム／インフラ／ヘルプデスクの各領域で、お客様の IT 課題に対応するアウトソーシングサービスをご提供します。",
+    url: "/service",
+  },
 };
 
 /**
