@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { siteConfig } from "@/lib/siteConfig";
@@ -29,11 +30,21 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link href="/" className="group flex flex-col leading-tight">
-          <span className="text-sm font-semibold text-slate-900 transition group-hover:opacity-70">
-            {siteConfig.siteName}
+        <Link href="/" className="group flex items-center gap-2.5">
+          <Image
+            src="/images/lightpath-logo.png"
+            alt=""
+            width={40}
+            height={40}
+            priority
+            className="h-9 w-9 shrink-0 sm:h-10 sm:w-10"
+          />
+          <span className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold text-slate-900 transition group-hover:opacity-70">
+              {siteConfig.siteName}
+            </span>
+            <span className="text-xs text-muted-foreground">{siteConfig.siteNameEn}</span>
           </span>
-          <span className="text-xs text-muted-foreground">{siteConfig.siteNameEn}</span>
         </Link>
         <nav
           className="hidden flex-wrap items-center justify-end gap-0.5 sm:flex sm:max-w-[28rem] md:max-w-none lg:gap-1"

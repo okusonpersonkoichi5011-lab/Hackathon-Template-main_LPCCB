@@ -1,7 +1,7 @@
 /**
  * 【採用・募集内容を変えたいときはここ】
  * 公式サイトの採用ページ（https://light-path.co.jp/recruit/）に沿って整理しています。
- * - jobOpenings：募集職種カード
+ * - jobOpenings：募集職種カード（icon は public/images のアイコン画像）
  * - idealCandidates：「こんな人が集まっています！」のリスト
  * - applicationFlow：応募から就業開始までのステップ
  */
@@ -10,6 +10,8 @@ export type JobItem = {
   title: string;
   employmentType: string;
   description: string;
+  /** 職種カードのアイコン画像 */
+  icon: string;
 };
 
 export const jobOpenings: JobItem[] = [
@@ -18,18 +20,21 @@ export const jobOpenings: JobItem[] = [
     employmentType: "正社員（未経験・経験者ともに歓迎）",
     description:
       "開発言語や工程に応じて、お客様先での開発支援に携わります。研修や資格取得のサポート体制を整え、キャリア形成を後押しします。",
+    icon: "/images/Recruit1.png",
   },
   {
     title: "インフラエンジニア",
     employmentType: "正社員",
     description:
       "サーバー／ネットワーク／DB／セキュリティなど、インフラ領域の設計・構築・運用に関わります。現場で必要なスキルを段階的に身につけられます。",
+    icon: "/images/Recruit2.png",
   },
   {
     title: "ヘルプデスク・IT サポート",
     employmentType: "正社員",
     description:
       "社内 IT 問い合わせ対応やキッティングなどを担当。コミュニケーション力を活かしつつ、IT の基礎から実務スキルまで幅広く成長できます。",
+    icon: "/images/Recruit3.png",
   },
 ];
 
@@ -99,3 +104,57 @@ export const recruitLead = {
     "ベンチャーならではのカジュアルな雰囲気で、和やかな面談を随時行っております。これからの会社を共に創ってくださる皆さまからのお問い合わせをお待ちしております。",
   ],
 } as const;
+
+/**
+ * 社員インタビュー（採用ページの「社員インタビューはこちら」で表示）
+ * ※ 下記はテンプレート用のサンプル文面です。実際の社員コメントに差し替えてください。
+ */
+export type EmployeeInterview = {
+  /** アイコン横に表示するイニシャル等 */
+  initial: string;
+  /** 職種・入社年など */
+  role: string;
+  /** 見出しの問い */
+  question: string;
+  /** 回答（段落ごとに配列で記述） */
+  answer: string[];
+};
+
+export const employeeInterviews: EmployeeInterview[] = [
+  {
+    initial: "S.K",
+    role: "システムエンジニア / 2023年入社・未経験スタート",
+    question: "未経験から始めて、今どんな仕事をしていますか？",
+    answer: [
+      "前職は販売職でしたが、研修でプログラミングの基礎から学び、今はお客様先で Web アプリケーションの開発を担当しています。",
+      "分からないことは先輩がすぐにフォローしてくれる環境で、半年ほどで一人でタスクを任されるようになりました。",
+    ],
+  },
+  {
+    initial: "M.T",
+    role: "インフラエンジニア / 2021年入社",
+    question: "ライトパスで働く魅力は何ですか？",
+    answer: [
+      "サーバーやネットワークの構築から運用まで幅広く経験でき、資格取得のサポートも手厚いです。",
+      "案件の相談がしやすく、自分のキャリアの方向性を一緒に考えてもらえるのが心強いです。",
+    ],
+  },
+  {
+    initial: "Y.N",
+    role: "ヘルプデスク・IT サポート / 2022年入社",
+    question: "職場の雰囲気を教えてください。",
+    answer: [
+      "年齢の近いメンバーが多く、カジュアルで相談しやすい雰囲気です。",
+      "困っている人がいれば自然と助け合う文化があり、未経験でも安心して成長できました。",
+    ],
+  },
+  {
+    initial: "R.A",
+    role: "システムエンジニア / 2020年入社",
+    question: "これから応募する方へひとことお願いします。",
+    answer: [
+      "最初は誰もが未経験です。大切なのは「やってみたい」という気持ちだと思います。",
+      "一緒に成長していける仲間をお待ちしています。まずはカジュアル面談からお気軽にどうぞ。",
+    ],
+  },
+];

@@ -124,6 +124,20 @@ body {
   border-color: var(--color-primary);
 }
 
+/* 写真バンドのマーキー（右から左へ流れる）。
+   同じ並びを2回つなげたトラックを -50% 移動させることで途切れずにループします。 */
+@keyframes lp-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.lp-marquee {
+  animation: lp-marquee 32s linear infinite;
+}
+/* ホバー中は一時停止（気になる写真で止められる） */
+.lp-marquee:hover {
+  animation-play-state: paused;
+}
+
 /* 「動きを減らす」設定の人には動きを最小化 */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -134,7 +148,8 @@ body {
   .reveal-in-fade,
   .reveal-in-scale,
   .lp-animate-fade-up,
-  .lp-animate-fade-in {
+  .lp-animate-fade-in,
+  .lp-marquee {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

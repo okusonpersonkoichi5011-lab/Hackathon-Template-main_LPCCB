@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageHeader } from "@/components/PageHeader";
 import { Reveal } from "@/components/Reveal";
-import { SectionTitle } from "@/components/SectionTitle";
-import { siteConfig } from "@/lib/siteConfig";
 
 export const metadata: Metadata = {
   title: "お問い合わせ",
@@ -18,149 +17,126 @@ export const metadata: Metadata = {
 };
 
 /**
- * お問い合わせページ（/contact）
- * - 一般のお問い合わせ（案件相談・協業など）専用
- * - 連絡先の定数：lib/siteConfig.ts の contact
- * - フォーム：送信なし（デモ）。action や Server Actions を足すと発展できます。
+ * お問い合わせページ（レイアウト見本に準拠）
+ * - Contact バナー → 案内文 → フォーム（送信なしデモ）
+ * - 採用エントリー（応募）は /recruit に分離しています。
  *
- * ※ 採用エントリー（応募）は /recruit に分離しています。
+ * ※ 各入力の maxLength は送信実装後のサーバ側で過剰入力を抑える防御。
+ *   本実装時は CSRF トークン・サーバ側バリデーション・レート制限の追加を推奨。
  */
 export default function ContactPage() {
   return (
-    <div className="bg-background">
-      <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
-        <SectionTitle
-          eyebrow="Contact"
-          title="お問い合わせ"
-          description="サービスや協業に関するご相談をお待ちしています。下記はテンプレート用のデモ UI です（フォーム送信は行いません）。"
-        />
+    <>
+      <PageHeader src="/images/Contact_header.png" alt="お問い合わせ" width={1366} height={183} />
 
-        {/* CTA（ページ上部で迷わせない） */}
-        <div className="mt-10 flex flex-wrap gap-3">
-          <a
-            href={siteConfig.contact.phoneTel}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 hover:-translate-y-0.5 hover:shadow-md"
-          >
-            電話する（{siteConfig.contact.phone}）
-          </a>
-          <Link
-            href="/service"
-            className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-primary hover:text-slate-900 hover:-translate-y-0.5"
-          >
-            サービス案内を見る
-          </Link>
-        </div>
-
-        <div className="mt-6 text-sm text-muted-foreground">
-          <p>TEL：{siteConfig.contact.phone}</p>
-          <p className="mt-1">{siteConfig.contact.address}</p>
-          <p className="mt-1">{siteConfig.contact.businessHours}</p>
-        </div>
-
-        {/* 採用希望者を /recruit へ誘導 */}
-        <div className="mt-6 rounded-lg border border-dashed border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-          採用へのご応募・採用に関するご相談は、
-          <Link href="/recruit" className="font-medium text-slate-900 underline underline-offset-2 hover:opacity-70">
-            採用情報ページ
-          </Link>
-          の専用エントリーフォームをご利用ください。
-        </div>
-
-        {/* 一般お問い合わせフォーム（送信なしデモ） */}
-        <Reveal>
-          <section className="mt-12 rounded-xl border border-border bg-surface p-6 sm:p-8">
-            <h2 className="text-lg font-semibold text-slate-900">お問い合わせフォーム（デモ）</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              入力しても送信されません。ハッカソン後に Formspree や API 連携などに差し替えられます。
+      <div className="bg-background">
+        <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+          {/* 案内文 */}
+          <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+            <p>弊社に興味をお持ちいただきありがとうございます。</p>
+            <p>
+              お問い合わせいただきました内容は、弊社の掲げる
+              <Link href="/privacy" className="font-medium text-slate-900 underline underline-offset-2 hover:opacity-70">
+                個人情報保護方針
+              </Link>
+              に沿って管理し、お客様の同意なく第三者に開示・提供することはございません。
             </p>
+          </div>
 
-            {/*
-              セキュリティ補足：
-              - 各入力の maxLength は、送信実装後のサーバ側で過剰な負荷／DoS 的入力を抑える防御。
-              - 本実装時は CSRF トークン、サーバ側バリデーション、レート制限の追加を推奨。
-            */}
-            <form className="mt-8 space-y-5">
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="name" className="text-sm font-medium text-slate-900">
-                    お名前 <span className="text-accent">（必須）</span>
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    autoComplete="name"
-                    required
-                    maxLength={60}
-                    placeholder="山田 花子"
-                    className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="company" className="text-sm font-medium text-slate-900">
-                    会社名・団体名
-                  </label>
-                  <input
-                    id="company"
-                    name="company"
-                    type="text"
-                    autoComplete="organization"
-                    maxLength={100}
-                    placeholder="株式会社〇〇"
-                    className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="email" className="text-sm font-medium text-slate-900">
-                    メールアドレス <span className="text-accent">（必須）</span>
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    maxLength={254}
-                    placeholder="you@example.com"
-                    className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="phone" className="text-sm font-medium text-slate-900">
-                    電話番号
-                  </label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    maxLength={20}
-                    pattern="[0-9\-\+\(\)\s]+"
-                    placeholder="090-1234-5678"
-                    className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
-                  />
-                </div>
+          {/* お問い合わせフォーム（送信なしデモ） */}
+          <Reveal>
+            <form className="mt-10 space-y-5">
+              <div>
+                <label htmlFor="name" className="text-sm font-medium text-slate-900">
+                  お名前 <span className="text-accent">（必須）</span>
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  maxLength={60}
+                  placeholder="山田 花子"
+                  className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
+                />
               </div>
 
               <div>
-                <label htmlFor="category" className="text-sm font-medium text-slate-900">
-                  ご用件の種類 <span className="text-accent">（必須）</span>
+                <label htmlFor="furigana" className="text-sm font-medium text-slate-900">
+                  ひらがな <span className="text-accent">（必須）</span>
                 </label>
-                <select
-                  id="category"
-                  name="category"
+                <input
+                  id="furigana"
+                  name="furigana"
+                  type="text"
                   required
-                  className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900"
-                  defaultValue="project"
-                >
-                  <option value="project">案件のご相談</option>
-                  <option value="partner">協業のご相談</option>
-                  <option value="service">サービスについて</option>
-                  <option value="other">その他</option>
-                </select>
+                  maxLength={80}
+                  placeholder="やまだ はなこ"
+                  className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="text-sm font-medium text-slate-900">
+                  メールアドレス <span className="text-accent">（必須）</span>
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  maxLength={254}
+                  placeholder="you@example.com"
+                  className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="company" className="text-sm font-medium text-slate-900">
+                  御社名
+                </label>
+                <input
+                  id="company"
+                  name="company"
+                  type="text"
+                  autoComplete="organization"
+                  maxLength={100}
+                  placeholder="株式会社〇〇"
+                  className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="phone" className="text-sm font-medium text-slate-900">
+                  電話番号
+                </label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  maxLength={20}
+                  pattern="[0-9\-\+\(\)\s]+"
+                  placeholder="090-1234-5678"
+                  className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="subject" className="text-sm font-medium text-slate-900">
+                  件名 <span className="text-accent">（必須）</span>
+                </label>
+                <input
+                  id="subject"
+                  name="subject"
+                  type="text"
+                  required
+                  maxLength={120}
+                  placeholder="お問い合わせの件名"
+                  className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground"
+                />
               </div>
 
               <div>
@@ -170,7 +146,7 @@ export default function ContactPage() {
                 <textarea
                   id="message"
                   name="message"
-                  rows={6}
+                  rows={7}
                   required
                   maxLength={2000}
                   placeholder="現状の課題やご希望のスケジュールなどをご記入ください。"
@@ -179,23 +155,28 @@ export default function ContactPage() {
               </div>
 
               <p className="text-xs text-muted-foreground">
-                ※確認画面は表示されません。入力内容をよくご確認の上、送信ボタンを押してください。
+                ※確認画面は表示されません。入力内容をよくご確認の上、送信ボタンを押してください。入力しても送信されません（ハッカソン後に Formspree や Server Actions に差し替え可能）。
               </p>
 
-              {/*
-                type="button" にしておくと、Server Component のまま「送信しないデモ」が作れます。
-                本番で送信したいときは type="submit" + Server Actions などに変更してください。
-              */}
+              <p className="text-xs text-muted-foreground">
+                採用へのご応募は、
+                <Link href="/recruit" className="font-medium text-slate-900 underline underline-offset-2 hover:opacity-70">
+                  採用情報ページ
+                </Link>
+                の専用エントリーフォームをご利用ください。
+              </p>
+
+              {/* type="button" のため送信されないデモ。本番は type="submit" + Server Actions などへ。 */}
               <button
                 type="button"
-                className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90 hover:-translate-y-0.5 hover:shadow-md sm:w-auto"
+                className="inline-flex w-full items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-md"
               >
-                送信する（デモ：動きません）
+                入力内容確認（デモ：動きません）
               </button>
             </form>
-          </section>
-        </Reveal>
+          </Reveal>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

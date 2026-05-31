@@ -1,80 +1,83 @@
+import Image from "next/image";
 import Link from "next/link";
 import { siteConfig } from "@/lib/siteConfig";
 
-/** 全ページ共通のフッター */
+/**
+ * 全ページ共通のフッター（レイアウト見本に準拠）
+ * - 左：社名・住所・営業時間・電話
+ * - 中央：Instagram アイコン（外部リンク）
+ * - 右：サイトナビ（各項目に区切り線）
+ * - 下部：コピーライト＋プライバシーポリシー
+ */
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-surface">
-      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {/* 会社名・概要 */}
-          <div className="lg:col-span-2">
-            <p className="text-sm font-semibold text-slate-900">{siteConfig.siteName}</p>
-            <p className="text-xs text-muted-foreground">{siteConfig.siteNameEn}</p>
-            <p className="mt-3 max-w-sm text-sm text-muted-foreground">
-              {siteConfig.shortDescription}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <a
-                href={siteConfig.externalLinks.officialSite}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground underline-offset-4 hover:text-slate-900 hover:underline"
-              >
-                公式サイト
-              </a>
-              <a
-                href={siteConfig.externalLinks.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground underline-offset-4 hover:text-slate-900 hover:underline"
-              >
-                Instagram
-              </a>
+    <footer className="bg-[#b6b8bb] text-slate-800">
+      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+        <div className="grid gap-10 md:grid-cols-[1.6fr_auto_1fr] md:items-start">
+          {/* 会社名・連絡先 */}
+          <div>
+            <p className="text-lg font-bold text-slate-900">{siteConfig.siteName}</p>
+            <div className="mt-4 space-y-1.5 text-sm leading-relaxed">
+              <p>{siteConfig.contact.address}</p>
+              <p>{siteConfig.contact.businessHours}</p>
+              <p>
+                <a
+                  href={siteConfig.contact.phoneTel}
+                  className="transition hover:text-slate-900 hover:underline"
+                >
+                  TEL：{siteConfig.contact.phone}
+                </a>
+              </p>
             </div>
           </div>
 
-          {/* ナビ */}
-          <nav className="flex flex-col gap-2 text-sm" aria-label="フッターナビゲーション">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              サイトメニュー
-            </p>
-            {siteConfig.nav.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="text-muted-foreground hover:text-slate-900"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* 連絡先 */}
-          <div className="text-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              お問い合わせ
-            </p>
-            <p className="mt-2 text-muted-foreground">
-              <a
-                href={siteConfig.contact.phoneTel}
-                className="hover:text-slate-900"
-              >
-                TEL：{siteConfig.contact.phone}
-              </a>
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              {siteConfig.contact.address}
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              {siteConfig.contact.businessHours}
-            </p>
+          {/* Instagram */}
+          <div className="flex md:justify-center">
+            <a
+              href={siteConfig.externalLinks.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram（外部サイトが開きます）"
+              className="inline-flex transition hover:-translate-y-0.5 hover:opacity-80"
+            >
+              <Image
+                src="/images/insta_icon.png"
+                alt="Instagram"
+                width={44}
+                height={44}
+                className="h-11 w-11"
+              />
+            </a>
           </div>
+
+          {/* サイトナビ */}
+          <nav className="text-sm" aria-label="フッターナビゲーション">
+            <ul>
+              {siteConfig.nav.map((item) => (
+                <li key={item.label} className="border-b border-slate-500/40">
+                  <Link
+                    href={item.href}
+                    className="block py-2 text-slate-800 transition hover:text-slate-900 hover:underline"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
 
-        <p className="mt-10 text-center text-xs text-muted-foreground">
-          © {siteConfig.footerYear} {siteConfig.siteName}
-        </p>
+        <div className="mt-10 flex flex-col items-center gap-2 text-xs text-slate-700 sm:flex-row sm:justify-center sm:gap-4">
+          <Link href="/privacy" className="transition hover:text-slate-900 hover:underline">
+            プライバシーポリシー
+          </Link>
+          <span aria-hidden className="hidden sm:inline">
+            |
+          </span>
+          <p>
+            Copyright © {siteConfig.siteName}　{siteConfig.siteNameEn}　All Rights Reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

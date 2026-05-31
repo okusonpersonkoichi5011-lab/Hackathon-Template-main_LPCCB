@@ -25,7 +25,8 @@ export function SectionTitle({ eyebrow, title, description }: SectionTitleProps)
         </Reveal>
       ) : null}
       <Reveal delay={eyebrow ? 100 : undefined}>
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+        {/* 見出しテキストの幅いっぱいに黄色い下線（全文字をカバー） */}
+        <h2 className="mt-2 inline-block border-b-4 border-primary pb-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
           {title}
         </h2>
       </Reveal>
