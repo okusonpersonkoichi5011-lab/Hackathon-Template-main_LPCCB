@@ -46,10 +46,10 @@ export default function HomePage() {
         {/* キャッチコピー */}
         <div className="mx-auto max-w-5xl px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-28">
           <div className="max-w-2xl">
-            <h1 className="lp-animate-fade-up text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            <h1 className="lp-animate-slide-in-right text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               専門スキルを持ったエンジニアが、お客様の課題解決を支援します。
             </h1>
-            <p className="lp-animate-fade-up lp-delay-100 mt-5 text-base leading-relaxed text-slate-700 sm:text-lg">
+            <p className="lp-animate-slide-in-right lp-delay-500 mt-5 text-base leading-relaxed text-slate-700 sm:text-lg">
               システムエンジニア、インフラエンジニア、ヘルプデスクサポートなどのアウトソーシングサービスをご提供しています。第一線で活躍してきたスペシャリストが、未経験からのキャリア形成も含めて伴走します。
             </p>
             <div className="lp-animate-fade-up lp-delay-200 mt-10 flex flex-wrap gap-3">
@@ -80,7 +80,7 @@ export default function HomePage() {
             {homeFeatures.map((feature, index) => {
               const delay = ((index + 1) * 100) as 100 | 200 | 300;
               return (
-                <Reveal key={feature.title} delay={delay}>
+                <Reveal key={feature.title} variant="fade-up-strong" delay={delay}>
                   <FeatureCard title={feature.title} body={feature.body} />
                 </Reveal>
               );
