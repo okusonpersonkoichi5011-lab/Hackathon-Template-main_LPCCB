@@ -30,20 +30,20 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link href="/" className="group flex items-center gap-2.5">
+        <Link href="/" className="group flex items-center gap-3">
           <Image
             src="/images/lightpath-logo.png"
             alt=""
-            width={40}
-            height={40}
+            width={56}
+            height={56}
             priority
-            className="h-9 w-9 shrink-0 sm:h-10 sm:w-10"
+            className="h-11 w-11 shrink-0 sm:h-12 sm:w-12"
           />
           <span className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold text-slate-900 transition group-hover:opacity-70">
+            <span className="text-base font-semibold text-slate-900 transition group-hover:opacity-70 sm:text-lg">
               {siteConfig.siteName}
             </span>
-            <span className="text-xs text-muted-foreground">{siteConfig.siteNameEn}</span>
+            <span className="text-xs text-muted-foreground sm:text-sm">{siteConfig.siteNameEn}</span>
           </span>
         </Link>
         <nav
@@ -57,7 +57,7 @@ export function Header() {
                 key={item.label}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative rounded-md px-2 py-2 text-xs transition hover:bg-muted hover:text-slate-900 md:px-3 md:text-sm ${
+                className={`relative rounded-md px-2 py-2 text-sm transition hover:bg-muted hover:text-slate-900 md:px-3 md:text-base ${
                   active
                     ? "font-semibold text-slate-900 after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-primary md:after:left-3 md:after:right-3"
                     : "text-slate-700"
