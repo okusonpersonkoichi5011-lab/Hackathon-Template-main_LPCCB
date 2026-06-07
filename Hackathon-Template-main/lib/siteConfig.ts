@@ -33,7 +33,7 @@ export const siteConfig = {
    */
   nav: [
     { href: "/", label: "ホーム" },
-    { href: "/service", label: "サービス案内" },
+    // サービス案内は会社案内ページに統合済み（旧 /service は app/service/page.tsx.bak に退避）
     { href: "/company", label: "会社案内" },
     { href: "/recruit", label: "採用情報" },
     { href: "/contact", label: "お問い合わせ" },

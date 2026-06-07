@@ -17,7 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // priority はトップを最上位（1.0）に、その他は 0.8 を目安にしています。
   const routes: { path: string; priority: number }[] = [
     { path: "", priority: 1 },
-    { path: "/service", priority: 0.8 },
+    // サービス案内は会社案内に統合済み（旧 /service は退避中。復活時はここに { path: "/service", priority: 0.8 } を戻す）
     { path: "/company", priority: 0.8 },
     { path: "/recruit", priority: 0.8 },
     { path: "/contact", priority: 0.7 },

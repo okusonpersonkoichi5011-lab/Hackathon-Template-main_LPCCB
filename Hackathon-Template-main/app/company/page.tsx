@@ -3,6 +3,8 @@ import Image from "next/image";
 import { PageHeader } from "@/components/PageHeader";
 import { Reveal } from "@/components/Reveal";
 import { SectionTitle } from "@/components/SectionTitle";
+import { ServiceCard } from "@/components/ServiceCard";
+import { services } from "@/lib/data/services";
 import { siteConfig } from "@/lib/siteConfig";
 
 export const metadata: Metadata = {
@@ -38,7 +40,9 @@ const companyProfile: { label: string; value: string }[] = [
  * 会社概要・代表挨拶・事業内容は、株式会社ライトパス公式サイトの公開情報に基づきます。
  * https://light-path.co.jp/company/
  *
- * 構成：COMPANY バナー → 集合写真 → 会社概要 → 代表挨拶 → 事業内容 → アクセスマップ → アクセス情報
+ * 構成：COMPANY バナー → 集合写真 → 会社概要 → 代表挨拶
+ *      → サービス案内 → 案件実績一覧 → アクセスマップ → アクセス情報
+ *      （※「サービス案内」「案件実績」はサービス案内ページから統合）
  */
 export default function CompanyPage() {
   return (
@@ -51,7 +55,7 @@ export default function CompanyPage() {
           <Reveal>
             <div className="relative aspect-[16/7] w-full overflow-hidden rounded-xl border border-border">
               <Image
-                src="/images/Group_photo.JPG"
+                src="/images/Group_photo.jpg"
                 alt="株式会社ライトパスの集合写真"
                 fill
                 priority
@@ -121,35 +125,37 @@ export default function CompanyPage() {
             </Reveal>
           </section>
 
-          {/* 事業内容 */}
-          <section className="mt-16">
-            <SectionTitle eyebrow="Business" title="事業内容" />
-            <div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground">
-              <Reveal delay={100}>
-                <div className="lp-hover-lift rounded-lg border border-border bg-surface p-5">
-                  <p className="font-semibold text-slate-900">システムエンジニアリングサービス</p>
-                  <p className="mt-2">
-                    IT の各分野や開発言語に対応し、スキルと実務経験の豊富なエンジニアがお客様の課題解決を支援します。
-                  </p>
-                </div>
-              </Reveal>
-              <Reveal delay={200}>
-                <div className="lp-hover-lift rounded-lg border border-border bg-surface p-5">
-                  <p className="font-semibold text-slate-900">インフラエンジニアリングサービス</p>
-                  <p className="mt-2">
-                    サーバー、ネットワーク、データベース、セキュリティなど、IT インフラの設計・構築・整備・保守を支援します。
-                  </p>
-                </div>
-              </Reveal>
-              <Reveal delay={300}>
-                <div className="lp-hover-lift rounded-lg border border-border bg-surface p-5">
-                  <p className="font-semibold text-slate-900">ヘルプデスク・サポートデスク アウトソーシング</p>
-                  <p className="mt-2">
-                    情報システム部門の社内 IT サポート、キッティングなど、各種デスク業務のアウトソーシングを提供します。
-                  </p>
-                </div>
-              </Reveal>
+          {/* サービス案内（旧サービス案内ページから統合） */}
+          <section id="service" className="mt-16 scroll-mt-28">
+            <SectionTitle
+              eyebrow="Service"
+              title="サービス案内"
+              description="システム／インフラ／ヘルプデスクの各領域で、お客様の IT 課題に対応します。"
+            />
+            <div className="mt-10 space-y-8">
+              {services.map((service, index) => {
+                const delay = ((index + 1) * 100) as 100 | 200 | 300;
+                return (
+                  <Reveal key={service.id} delay={delay}>
+                    <ServiceCard service={service} />
+                  </Reveal>
+                );
+              })}
             </div>
+          </section>
+
+          {/* 案件実績一覧（旧サービス案内ページから統合） */}
+          <section className="mt-16">
+            <SectionTitle
+              eyebrow="Track record"
+              title="案件実績一覧"
+              description="これまでにご支援した主な取引先です。"
+            />
+            <Reveal>
+              <div className="lp-hover-lift mt-8 rounded-xl border border-border bg-surface p-6">
+                <p className="text-sm leading-relaxed text-slate-800">楽天グループ株式会社　他</p>
+              </div>
+            </Reveal>
           </section>
 
           {/* アクセスマップ */}

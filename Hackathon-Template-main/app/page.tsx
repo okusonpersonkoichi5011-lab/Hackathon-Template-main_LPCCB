@@ -18,9 +18,9 @@ import { homeFeatures } from "@/lib/data/homeFeatures";
  */
 export default function HomePage() {
   const bandPhotos = [
-    { src: "/images/employee1.png", alt: "打ち合わせの様子" },
-    { src: "/images/employee2.png", alt: "社員が移動する様子" },
-    { src: "/images/employee3.png", alt: "作業に取り組む様子" },
+    { src: "/images/employee1.jpg", alt: "打ち合わせの様子" },
+    { src: "/images/employee2.jpg", alt: "社員が移動する様子" },
+    { src: "/images/employee3.jpg", alt: "作業に取り組む様子" },
   ];
   // マーキー用：同じ並びを2回つなげて1セットとし、さらに2回描画して -50% 移動で途切れずループ
   const marqueePhotos = [...bandPhotos, ...bandPhotos];
@@ -40,7 +40,7 @@ export default function HomePage() {
         {/* 文字・カードを読みやすくするための淡いオーバーレイ */}
         <div
           aria-hidden
-          className="absolute inset-0 -z-10 bg-gradient-to-b from-white/70 via-white/55 to-white/75"
+          className="absolute inset-0 -z-10 bg-gradient-to-b from-white/0 via-white/0 to-white/0"
         />
 
         {/* キャッチコピー */}
@@ -54,14 +54,8 @@ export default function HomePage() {
             </p>
             <div className="lp-animate-fade-up lp-delay-200 mt-10 flex flex-wrap gap-3">
               <Link
-                href="/service"
-                className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
-              >
-                サービス案内を見る
-              </Link>
-              <Link
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
+                className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
               >
                 お問い合わせへ
               </Link>
@@ -86,30 +80,6 @@ export default function HomePage() {
               );
             })}
           </div>
-        </div>
-      </section>
-
-      {/* サービス案内への導線 */}
-      <section className="border-b border-border bg-surface">
-        <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20">
-          <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
-            <SectionTitle
-              eyebrow="Services"
-              title="サービス案内"
-              description="システム／インフラ／ヘルプデスクの各領域で、お客様の IT 課題に対応します。"
-            />
-            <Link
-              href="/service"
-              className="inline-flex w-fit items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
-            >
-              サービス一覧を見る
-            </Link>
-          </div>
-          <Reveal>
-            <p className="mt-10 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              IT システムやインフラに関する課題解決はお任せください。まずはお気軽にご相談いただけます。
-            </p>
-          </Reveal>
         </div>
       </section>
 
