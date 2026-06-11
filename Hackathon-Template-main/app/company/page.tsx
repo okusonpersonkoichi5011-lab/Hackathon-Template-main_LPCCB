@@ -94,10 +94,10 @@ export default function CompanyPage() {
             </Reveal>
           </section>
 
-          {/* 代表挨拶 */}
+          {/* 代表挨拶（画面外右から左へスライド＋フェードイン） */}
           <section className="mt-16">
             <SectionTitle eyebrow="Message" title="代表挨拶" />
-            <Reveal>
+            <Reveal variant="slide-right">
               <div className="mt-6 overflow-hidden rounded-xl border border-dashed border-border bg-muted/40">
                 <div className="relative aspect-[1004/400] w-full">
                   <Image
@@ -136,7 +136,7 @@ export default function CompanyPage() {
               {services.map((service, index) => {
                 const delay = ((index + 1) * 100) as 100 | 200 | 300;
                 return (
-                  <Reveal key={service.id} delay={delay}>
+                  <Reveal key={service.id} variant="slide-right" delay={delay}>
                     <ServiceCard service={service} />
                   </Reveal>
                 );
@@ -144,14 +144,14 @@ export default function CompanyPage() {
             </div>
           </section>
 
-          {/* 案件実績一覧（旧サービス案内ページから統合） */}
+          {/* 案件実績一覧（画面下からフェードアップ・0.5秒） */}
           <section className="mt-16">
             <SectionTitle
               eyebrow="Track record"
               title="案件実績一覧"
               description="これまでにご支援した主な取引先です。"
             />
-            <Reveal>
+            <Reveal variant="fade-up-strong">
               <div className="lp-hover-lift mt-8 rounded-xl border border-border bg-surface p-6">
                 <p className="text-sm leading-relaxed text-slate-800">楽天グループ株式会社　他</p>
               </div>
@@ -165,7 +165,7 @@ export default function CompanyPage() {
               title="アクセスマップ"
               description="各線の渋谷駅から徒歩 5〜10 分ほど。「道玄坂上交番前」交差点から道玄坂を少し上った左手のビルです。"
             />
-            <Reveal>
+            <Reveal variant="slide-right">
               <div className="mt-6 overflow-hidden rounded-xl border border-border">
                 <iframe
                   title="株式会社ライトパス 所在地の地図"

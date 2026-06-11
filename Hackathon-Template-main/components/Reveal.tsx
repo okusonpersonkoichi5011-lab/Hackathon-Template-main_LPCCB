@@ -6,7 +6,7 @@ type RevealProps = {
   /** 中に入れる任意の React 要素 */
   children: React.ReactNode;
   /** アニメーションの種類（既定：fade-up） */
-  variant?: "fade-up" | "fade-up-strong" | "fade" | "scale";
+  variant?: "fade-up" | "fade-up-strong" | "fade" | "scale" | "slide-right" | "slide-left";
   /**
    * 出現を少し遅らせたいとき（ミリ秒、5 段階：100/200/300/400/500）
    * - スタッガー（カードを順番に出すなど）に便利
@@ -81,7 +81,11 @@ export function Reveal({
         ? "reveal-in-scale"
         : variant === "fade-up-strong"
           ? "reveal-in-strong"
-          : "reveal-in";
+          : variant === "slide-right"
+            ? "reveal-in-slide-right"
+            : variant === "slide-left"
+              ? "reveal-in-slide-left"
+              : "reveal-in";
 
   const delayClass =
     delay === 100

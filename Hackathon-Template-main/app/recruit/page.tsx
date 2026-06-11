@@ -41,14 +41,16 @@ export default function RecruitPage() {
 
       <div className="bg-background">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-14">
-          {/* リード */}
+          {/* リード（画面外右から左へスライド＋フェードイン） */}
           <section>
-            <SectionTitle eyebrow="Recruit" title={recruitLead.heading} />
-            <div className="mt-4 space-y-4 text-sm leading-relaxed text-muted-foreground">
-              {recruitLead.paragraphs.map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
-            </div>
+            <Reveal variant="slide-right">
+              <SectionTitle eyebrow="Recruit" title={recruitLead.heading} />
+              <div className="mt-4 space-y-4 text-sm leading-relaxed text-muted-foreground">
+                {recruitLead.paragraphs.map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+              </div>
+            </Reveal>
           </section>
 
           {/* 募集職種（アイコン付き3カード） */}
@@ -62,7 +64,7 @@ export default function RecruitPage() {
                 const delay = ((index + 1) * 100) as 100 | 200 | 300;
                 return (
                   <Reveal key={job.title} delay={delay}>
-                    <article className="lp-hover-lift flex h-full flex-col items-center rounded-xl border border-border bg-surface p-6 text-center">
+                    <article className="lp-card-hover-zoom flex h-full flex-col items-center rounded-xl border border-border bg-surface p-6 text-center">
                       <Image
                         src={job.icon}
                         alt=""
@@ -86,8 +88,8 @@ export default function RecruitPage() {
           <section className="mt-16">
             <SectionTitle eyebrow="Members" title="こんな人が集まっています！" />
             <div className="mt-6 grid gap-6 md:grid-cols-2 md:items-start">
-              {/* 写真（左） */}
-              <Reveal>
+              {/* 写真（左）：画面外左から右の定位置へスライド＋フェードイン */}
+              <Reveal variant="slide-left">
                 <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-border">
                   <Image
                     src="/images/Group_photo2.jpg"
@@ -98,12 +100,14 @@ export default function RecruitPage() {
                   />
                 </div>
               </Reveal>
-              {/* 紹介文＋当てはまる人リスト（写真の右側に配置） */}
-              <Reveal delay={100}>
-                <div>
+              {/* 紹介文（早め）と当てはまる人リスト（やや遅れて）：どちらも画面外右からスライド */}
+              <div>
+                <Reveal variant="slide-right" delay={100}>
                   <p className="text-base leading-relaxed text-muted-foreground">
                     一つでも当てはまる方は、まずはカジュアル面談からでもお気軽にどうぞ。ベンチャーならではの和やかな雰囲気で、これからの会社を共に創ってくださる仲間をお待ちしています。
                   </p>
+                </Reveal>
+                <Reveal variant="slide-right" delay={200}>
                   <ul className="mt-4 space-y-2.5 text-base leading-relaxed text-slate-800">
                     {idealCandidates.map((candidate) => (
                       <li key={candidate} className="flex items-start gap-2">
@@ -115,8 +119,8 @@ export default function RecruitPage() {
                       </li>
                     ))}
                   </ul>
-                </div>
-              </Reveal>
+                </Reveal>
+              </div>
             </div>
 
             {/* 社員インタビュー（「社員インタビューはこちら」ボタンで開閉） */}

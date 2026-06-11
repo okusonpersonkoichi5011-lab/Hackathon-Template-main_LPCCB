@@ -135,6 +135,39 @@ body {
   animation: lp-fade-up-strong 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Reveal の variant="slide-right" で使う：画面外右から左の定位置へスライド＋フェード（0.5秒） */
+.reveal-in-slide-right {
+  animation: lp-slide-in-right 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Reveal の variant="slide-left" で使う：画面外左から右の定位置へスライド＋フェード（0.5秒） */
+@keyframes lp-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.reveal-in-slide-left {
+  animation: lp-slide-in-left 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 採用ページの募集職種カード用：ホバー時にわずかに拡大＋立体感 */
+.lp-card-hover-zoom {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+.lp-card-hover-zoom:hover {
+  transform: scale(1.04);
+  box-shadow: 0 14px 28px -12px rgba(15, 23, 42, 0.18);
+  border-color: var(--color-primary);
+}
+
 /* delay ユーティリティ（最大 500ms まで／必要なら追加してOK） */
 .lp-delay-100 { animation-delay: 0.1s; }
 .lp-delay-200 { animation-delay: 0.2s; }
@@ -182,12 +215,15 @@ body {
   .lp-animate-fade-in,
   .lp-animate-slide-in-right,
   .reveal-in-strong,
+  .reveal-in-slide-right,
+  .reveal-in-slide-left,
   .lp-marquee {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
   }
-  .lp-hover-lift {
+  .lp-hover-lift,
+  .lp-card-hover-zoom {
     transition: none !important;
   }
 }
