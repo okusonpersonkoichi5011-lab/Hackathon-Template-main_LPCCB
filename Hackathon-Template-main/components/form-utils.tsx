@@ -76,6 +76,67 @@ export function FieldRow({
   );
 }
 
+// ----- PDF ファイル検証（クライアント側即時チェック＋サーバ側検証） -----
+/**
+ * クライアント側で PDF かを 3 段階で検証:
+ *  1) 拡張子 (.pdf)
+ *  2) MIME タイプ (application/pdf。空文字は他2つでカバー)
+ *  3) 先頭5バイトのマジックナンバー (%PDF-)
+ * 全てパス時 null、失敗時はエラーメッセージを返す。
+ */
+export async function validatePdfFileClient(file: File): Promise<string | null> {
+  if (!file.name.toLowerCase().endsWith(".pdf")) {
+    return "PDF 形式のファイル（拡張子 .pdf）のみアップロード可能です。";
+  }
+  if (file.type && file.type !== "application/pdf") {
+    return "PDF 形式のファイル（application/pdf）のみアップロード可能です。";
+  }
+  try {
+    const buf = await file.slice(0, 5).arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    const isPDF =
+      bytes.length === 5 &&
+      bytes[0] === 0x25 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x44 &&
+      bytes[3] === 0x46 &&
+      bytes[4] === 0x2D;
+    if (!isPDF) {
+      return "ファイルの中身が PDF 形式ではありません。正しい PDF ファイルをアップロードしてください。";
+    }
+  } catch {
+    return "ファイルの読み込みに失敗しました。";
+  }
+  return null;
+}
+
+/**
+ * サーバ側 API ルート /api/upload-resume へ POST して検証。
+ * 400 が返ってきたらサーバ側エラー文言を返す。通信エラー時はその旨。
+ */
+export async function validatePdfFileServer(file: File): Promise<string | null> {
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload-resume", { method: "POST", body: fd });
+    if (res.status === 200) return null;
+    if (res.status === 400) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return body?.error ?? "サーバ側の検証で拒否されました。";
+    }
+    return `アップロードに失敗しました（ステータス: ${res.status}）。`;
+  } catch {
+    return "サーバ側の検証に失敗しました（通信エラー）。";
+  }
+}
+
+/** クライアント検証 → サーバ検証 の順に実行（クライアント NG ならサーバには投げない） */
+export async function validatePdfFile(file: File): Promise<string | null> {
+  const c = await validatePdfFileClient(file);
+  if (c) return c;
+  return await validatePdfFileServer(file);
+}
+
 // ----- 郵便番号 → 住所自動取得（zipcloud：無料・キー不要・CORS対応） -----
 /**
  * 7桁の郵便番号から都道府県・市区町村を取得。失敗時は null。

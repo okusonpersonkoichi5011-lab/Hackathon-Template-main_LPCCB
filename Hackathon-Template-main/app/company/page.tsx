@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Reveal } from "@/components/Reveal";
 import { SectionTitle } from "@/components/SectionTitle";
 import { ServiceCard } from "@/components/ServiceCard";
+import { ZoomableImage } from "@/components/ZoomableImage";
 import { services } from "@/lib/data/services";
 import { siteConfig } from "@/lib/siteConfig";
 
@@ -98,7 +99,7 @@ export default function CompanyPage() {
           <section className="mt-16">
             <SectionTitle eyebrow="Message" title="代表挨拶" />
             <Reveal variant="slide-right">
-              <div className="mt-6 overflow-hidden rounded-xl border border-dashed border-border bg-muted/40">
+              <div className="mt-6 overflow-hidden rounded-xl border border-border bg-muted/40">
                 <div className="relative aspect-[1004/400] w-full">
                   <Image
                     src="/images/UnleashYP.png"
@@ -163,7 +164,7 @@ export default function CompanyPage() {
             <SectionTitle
               eyebrow="Access"
               title="アクセスマップ"
-              description="各線の渋谷駅から徒歩 5〜10 分ほど。「道玄坂上交番前」交差点から道玄坂を少し上った左手のビルです。"
+              description="各線の渋谷駅から徒歩 5〜10 分ほど。「道玄坂上交番前」交差点から道玄坂を少し上った、左手の建物にあります。"
             />
             <Reveal variant="slide-right">
               <div className="mt-6 overflow-hidden rounded-xl border border-border">
@@ -210,15 +211,12 @@ export default function CompanyPage() {
             <SectionTitle eyebrow="Landmark" title="アクセス情報" />
             <Reveal>
               <div className="mt-6 grid gap-6 rounded-xl border border-border bg-surface p-6 md:grid-cols-[300px_1fr] md:items-center">
-                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg border border-border">
-                  <Image
-                    src="/images/SHINANOYA.png"
-                    alt="ビル1階の信濃屋（SHINANOYA）の外観"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 300px"
-                    className="object-cover"
-                  />
-                </div>
+                <ZoomableImage
+                  src="/images/SHINANOYA.png"
+                  alt="ビル1階の信濃屋（SHINANOYA）の外観"
+                  wrapperClassName="relative aspect-[16/10] w-full overflow-hidden rounded-lg border border-border"
+                  thumbSizes="(max-width: 768px) 100vw, 300px"
+                />
                 <div>
                   <p className="text-sm leading-relaxed text-slate-800">{siteConfig.access.landmark}</p>
                   <p className="mt-3 text-xs leading-relaxed text-muted-foreground">

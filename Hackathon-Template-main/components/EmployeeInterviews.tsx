@@ -32,7 +32,10 @@ export function EmployeeInterviews({ interviews }: EmployeeInterviewsProps) {
       </div>
 
       {open ? (
-        <div id="employee-interviews" className="mt-8 grid gap-4 md:grid-cols-2">
+        <div
+          id="employee-interviews"
+          className="mt-8 grid gap-4 md:grid-cols-2 md:auto-rows-fr"
+        >
           {interviews.map((interview, index) => {
             // 100/200/300/400/500ms とずらすことで、カードが画面下から順番に出現
             const delays = [100, 200, 300, 400, 500] as const;
@@ -42,8 +45,10 @@ export function EmployeeInterviews({ interviews }: EmployeeInterviewsProps) {
                 key={`${interview.initial}-${interview.role}`}
                 variant="fade-up-strong"
                 delay={delay}
+                className="h-full"
               >
-                <article className="rounded-xl border border-border bg-surface p-6">
+                {/* 枠を固定：高さを揃え、長文は内部スクロール、短文では下に余白 */}
+                <article className="flex h-full min-h-[20rem] flex-col rounded-xl border border-border bg-surface p-6">
                   <div className="flex items-center gap-3">
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
                       <Image
@@ -62,7 +67,7 @@ export function EmployeeInterviews({ interviews }: EmployeeInterviewsProps) {
                   <p className="mt-4 text-sm font-semibold text-slate-900">
                     Q. {interview.question}
                   </p>
-                  <div className="mt-2 space-y-2 text-sm leading-relaxed text-muted-foreground">
+                  <div className="mt-2 flex-1 space-y-2 overflow-y-auto pr-1 text-sm leading-relaxed text-muted-foreground">
                     {interview.answer.map((paragraph, idx) => (
                       <p key={idx}>{paragraph}</p>
                     ))}

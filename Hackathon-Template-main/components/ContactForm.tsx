@@ -218,7 +218,7 @@ export function ContactForm() {
           <div className="flex flex-col gap-3 sm:flex-row-reverse">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-md"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
               送信する（デモ：実際には送信されません）
             </button>
@@ -532,7 +532,7 @@ export function ContactForm() {
             </p>
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-md"
+              className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
               入力内容確認
             </button>

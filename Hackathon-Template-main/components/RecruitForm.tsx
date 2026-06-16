@@ -10,6 +10,7 @@ import {
   HIRAGANA_RE,
   inputClass,
   PHONE_RE,
+  validatePdfFile,
 } from "@/components/form-utils";
 
 /**
@@ -17,6 +18,9 @@ import {
  * - 必須=赤・任意=緑のバッジ付き 3 カラム行レイアウト
  * - 姓名・ふりがな分割／電話番号 1 行／住所必須（郵便番号自動入力）
  */
+
+type EmploymentType = "fulltime-newgrad" | "fulltime-career" | "parttime";
+type CareerMode = "text" | "file";
 
 type RecruitData = {
   lastName: string;
@@ -32,8 +36,15 @@ type RecruitData = {
   city: string;
   streetAddress: string;
   buildingName: string;
-  employmentType: "fulltime" | "parttime";
+  employmentType: EmploymentType;
+  /** 履歴書（ファイルアップロード・全雇用形態で必須） */
+  resumeFile: File | null;
+  /** 職務経歴の入力モード（テキスト or ファイル）。新卒採用では非表示。 */
+  careerMode: CareerMode;
+  /** 職務経歴（テキスト入力モード時） */
   career: string;
+  /** 職務経歴（ファイルアップロードモード時） */
+  careerFile: File | null;
   motivation: string;
 };
 
@@ -53,15 +64,29 @@ const initialData: RecruitData = {
   city: "",
   streetAddress: "",
   buildingName: "",
-  employmentType: "fulltime",
+  employmentType: "fulltime-career",
+  resumeFile: null,
+  careerMode: "text",
   career: "",
+  careerFile: null,
   motivation: "",
 };
 
-const employmentTypeLabel: Record<RecruitData["employmentType"], string> = {
-  fulltime: "正社員",
+const employmentTypeLabel: Record<EmploymentType, string> = {
+  "fulltime-newgrad": "正社員（新卒採用）",
+  "fulltime-career": "正社員（キャリア採用）",
   parttime: "パート・アルバイト",
 };
+
+/** 新卒採用かどうか（職務経歴セクションの表示制御に使う） */
+const isNewGrad = (t: EmploymentType): boolean => t === "fulltime-newgrad";
+
+/**
+ * 受け付ける履歴書／職務経歴ファイルは PDF のみ。
+ * - input の accept 属性で .pdf / application/pdf 以外を選びにくくする
+ * - 実際の防御は validatePdfFile（拡張子＋MIME＋マジックナンバー＋サーバ側 400）で行う
+ */
+const FILE_ACCEPT = ".pdf,application/pdf";
 
 const validate = (data: RecruitData): RecruitErrors => {
   const e: RecruitErrors = {};
@@ -90,7 +115,19 @@ const validate = (data: RecruitData): RecruitErrors => {
   if (!data.prefecture.trim()) e.prefecture = "都道府県を入力してください。";
   if (!data.city.trim()) e.city = "市区町村を入力してください。";
   if (!data.streetAddress.trim()) e.streetAddress = "字名・番地を入力してください。";
-  if (!data.career.trim()) e.career = "職務経歴を入力してください。";
+
+  // 履歴書は全雇用形態で必須（ファイルアップロード）
+  if (!data.resumeFile) e.resumeFile = "履歴書ファイルをアップロードしてください。";
+
+  // 職務経歴：新卒採用は不要、それ以外（キャリア採用・パート）は必須
+  if (!isNewGrad(data.employmentType)) {
+    if (data.careerMode === "text") {
+      if (!data.career.trim()) e.career = "職務経歴を入力してください。";
+    } else if (data.careerMode === "file") {
+      if (!data.careerFile) e.careerFile = "職務経歴のファイルをアップロードしてください。";
+    }
+  }
+
   if (!data.motivation.trim()) e.motivation = "志望動機・PR 事項を入力してください。";
   return e;
 };
@@ -131,6 +168,49 @@ export function RecruitForm() {
         }
       });
     }
+  };
+
+  /**
+   * ファイル選択時の共通ハンドラ:
+   *  - 解除（null）はそのまま受け入れる
+   *  - 拡張子・MIME・先頭バイトをクライアント側で確認 → サーバ側 /api/upload-resume にも POST し
+   *    両方を通った PDF のみ state に格納
+   *  - 失敗時は state を null に戻し、エラー文を表示。input 値も空にして同じファイルを再選択可能に
+   */
+  const onFileFieldChange = async (
+    key: "resumeFile" | "careerFile",
+    inputEl: HTMLInputElement,
+  ) => {
+    /** key で示すフィールドだけ File|null に書き換えるヘルパ（型安全に） */
+    const setFileField = (value: File | null) => {
+      setData((prev) => {
+        const next = { ...prev };
+        next[key] = value;
+        return next;
+      });
+    };
+
+    const file = inputEl.files?.[0] ?? null;
+    if (!file) {
+      setFileField(null);
+      return;
+    }
+    const error = await validatePdfFile(file);
+    if (error) {
+      setFileField(null);
+      setErrors((prev) => ({ ...prev, [key]: error }));
+      // 同じファイルを再選択できるようにリセット
+      inputEl.value = "";
+      return;
+    }
+    // 通過：ファイルを保存し、その項目のエラーは消す
+    setFileField(file);
+    setErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   };
 
   const scrollToFormTop = () => {
@@ -184,7 +264,24 @@ export function RecruitForm() {
         .join("\n"),
     },
     { label: "ご希望の雇用形態", value: employmentTypeLabel[data.employmentType] },
-    { label: "職務経歴", value: data.career },
+    {
+      label: "履歴書",
+      value: data.resumeFile ? `${data.resumeFile.name}（${Math.round(data.resumeFile.size / 1024)} KB）` : "",
+    },
+    // 職務経歴：新卒採用では非表示、それ以外はテキストまたはファイル
+    ...(isNewGrad(data.employmentType)
+      ? []
+      : [
+          {
+            label: "職務経歴",
+            value:
+              data.careerMode === "file"
+                ? data.careerFile
+                  ? `${data.careerFile.name}（${Math.round(data.careerFile.size / 1024)} KB）`
+                  : ""
+                : data.career,
+          },
+        ]),
     { label: "志望動機・PR 事項など", value: data.motivation },
   ];
 
@@ -510,36 +607,132 @@ export function RecruitForm() {
             />
           </FieldRow>
 
-          {/* ご希望の雇用形態 */}
-          <FieldRow badge="required" label="ご希望の雇用形態" htmlFor="employmentType">
-            <select
-              id="employmentType"
-              value={data.employmentType}
-              onChange={(e) =>
-                set("employmentType", e.target.value as RecruitData["employmentType"])
-              }
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-slate-900 focus:outline-2 focus:outline-offset-2 focus:outline-primary"
-            >
-              <option value="fulltime">正社員</option>
-              <option value="parttime">パート・アルバイト</option>
-            </select>
+          {/* ご希望の雇用形態（3区分のラジオ選択） */}
+          <FieldRow badge="required" label="ご希望の雇用形態">
+            <div className="space-y-2">
+              {(
+                [
+                  "fulltime-newgrad",
+                  "fulltime-career",
+                  "parttime",
+                ] as EmploymentType[]
+              ).map((type) => (
+                <label key={type} className="flex items-center gap-2 text-sm text-slate-900">
+                  <input
+                    type="radio"
+                    name="employmentType"
+                    value={type}
+                    checked={data.employmentType === type}
+                    onChange={() => set("employmentType", type)}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  <span>{employmentTypeLabel[type]}</span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              ※ 新卒採用の方は、職務経歴の入力は不要です（履歴書のみ必須）。
+            </p>
           </FieldRow>
 
-          {/* 職務経歴 */}
-          <FieldRow badge="required" label="職務経歴" htmlFor="career">
-            <textarea
-              id="career"
-              rows={4}
-              maxLength={2000}
-              placeholder="これまでのご職業・担当業務などを簡単にご記入ください。"
-              value={data.career}
-              onChange={(e) => set("career", e.target.value)}
-              aria-invalid={!!errors.career}
-              aria-describedby={errors.career ? "career-error" : undefined}
-              className={inputClass(!!errors.career)}
+          {/* 履歴書（全雇用形態で必須・PDF のみ） */}
+          <FieldRow badge="required" label="履歴書" htmlFor="resumeFile">
+            <input
+              id="resumeFile"
+              type="file"
+              accept={FILE_ACCEPT}
+              onChange={(e) => {
+                // React の合成イベントは async 後 currentTarget が null になり得るため
+                // DOM 参照をローカルにつかんでから検証する
+                const inputEl = e.currentTarget;
+                void onFileFieldChange("resumeFile", inputEl);
+              }}
+              aria-invalid={!!errors.resumeFile}
+              aria-describedby={errors.resumeFile ? "resumeFile-error" : "resumeFile-hint"}
+              className="block w-full text-sm text-slate-900 file:mr-3 file:rounded file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:opacity-90"
             />
-            <FieldError id="career-error" error={errors.career} />
+            {data.resumeFile && (
+              <p className="mt-1 text-xs text-slate-700">
+                選択中：{data.resumeFile.name}（{Math.round(data.resumeFile.size / 1024)} KB）
+              </p>
+            )}
+            <p id="resumeFile-hint" className="mt-1 text-xs text-muted-foreground">
+              PDF 形式（.pdf）のファイルのみアップロード可能です。
+            </p>
+            <FieldError id="resumeFile-error" error={errors.resumeFile} />
           </FieldRow>
+
+          {/* 職務経歴（新卒採用では非表示。それ以外はテキスト or ファイル選択） */}
+          {!isNewGrad(data.employmentType) && (
+            <FieldRow badge="required" label="職務経歴">
+              {/* 入力モードの切替（テキスト or ファイル） */}
+              <div className="mb-3 flex flex-wrap gap-4 text-sm text-slate-900">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="careerMode"
+                    value="text"
+                    checked={data.careerMode === "text"}
+                    onChange={() => set("careerMode", "text")}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  <span>テキストで入力</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="careerMode"
+                    value="file"
+                    checked={data.careerMode === "file"}
+                    onChange={() => set("careerMode", "file")}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  <span>ファイルをアップロード</span>
+                </label>
+              </div>
+
+              {data.careerMode === "text" ? (
+                <>
+                  <textarea
+                    id="career"
+                    rows={4}
+                    maxLength={2000}
+                    placeholder="これまでのご職業・担当業務などを簡単にご記入ください。"
+                    value={data.career}
+                    onChange={(e) => set("career", e.target.value)}
+                    aria-invalid={!!errors.career}
+                    aria-describedby={errors.career ? "career-error" : undefined}
+                    className={inputClass(!!errors.career)}
+                  />
+                  <FieldError id="career-error" error={errors.career} />
+                </>
+              ) : (
+                <>
+                  <input
+                    id="careerFile"
+                    type="file"
+                    accept={FILE_ACCEPT}
+                    onChange={(e) => {
+                      const inputEl = e.currentTarget;
+                      void onFileFieldChange("careerFile", inputEl);
+                    }}
+                    aria-invalid={!!errors.careerFile}
+                    aria-describedby={errors.careerFile ? "careerFile-error" : "careerFile-hint"}
+                    className="block w-full text-sm text-slate-900 file:mr-3 file:rounded file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:opacity-90"
+                  />
+                  {data.careerFile && (
+                    <p className="mt-1 text-xs text-slate-700">
+                      選択中：{data.careerFile.name}（{Math.round(data.careerFile.size / 1024)} KB）
+                    </p>
+                  )}
+                  <p id="careerFile-hint" className="mt-1 text-xs text-muted-foreground">
+                    PDF 形式（.pdf）のファイルのみアップロード可能です。
+                  </p>
+                  <FieldError id="careerFile-error" error={errors.careerFile} />
+                </>
+              )}
+            </FieldRow>
+          )}
 
           {/* 志望動機・PR 事項 */}
           <FieldRow badge="required" label="志望動機・PR 事項など" htmlFor="motivation">
@@ -562,22 +755,24 @@ export function RecruitForm() {
             <p className="text-xs text-muted-foreground">
               ※「入力内容確認」を押すと、確認画面に内容が表示されます。送信は確認画面で行います。
             </p>
-            <p className="text-xs text-muted-foreground">
-              採用以外（案件・協業など）のご相談は、
-              <Link
-                href="/contact"
-                className="font-medium text-slate-900 underline underline-offset-2 hover:opacity-70"
-              >
-                お問い合わせページ
-              </Link>
-              をご利用ください。
-            </p>
+            {/* 入力内容確認ボタン（注意書きの直下） */}
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md sm:w-auto"
+              className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
               入力内容確認
             </button>
+
+            <p className="pt-4 text-xs text-muted-foreground">
+              採用以外（案件・協業など）のご相談はこちらからご利用ください。
+            </p>
+            {/* お問い合わせページへの導線（黄色・お問い合わせフォーム送信ボタンと同じく常に全幅） */}
+            <Link
+              href="/contact"
+              className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
+            >
+              お問い合わせはこちら
+            </Link>
           </div>
         </form>
       )}

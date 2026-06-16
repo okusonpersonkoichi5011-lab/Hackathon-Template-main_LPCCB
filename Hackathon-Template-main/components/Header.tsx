@@ -70,16 +70,16 @@ export function Header() {
             <Image
               src="/images/lightpath-logo.png"
               alt=""
-              width={56}
-              height={56}
+              width={72}
+              height={72}
               priority
-              className="h-11 w-11 shrink-0 sm:h-12 sm:w-12"
+              className="h-14 w-14 shrink-0 sm:h-16 sm:w-16"
             />
             <span className="flex flex-col leading-tight">
-              <span className="text-base font-semibold text-slate-900 transition group-hover:opacity-70 sm:text-lg">
+              <span className="text-lg font-semibold text-slate-900 transition group-hover:opacity-70 sm:text-xl">
                 {siteConfig.siteName}
               </span>
-              <span className="text-xs text-muted-foreground sm:text-sm">
+              <span className="text-sm text-muted-foreground sm:text-base">
                 {siteConfig.siteNameEn}
               </span>
             </span>

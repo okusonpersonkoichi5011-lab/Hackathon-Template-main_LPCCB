@@ -52,14 +52,6 @@ export default function HomePage() {
             <p className="lp-animate-slide-in-right lp-delay-500 mt-5 text-base leading-relaxed text-slate-700 sm:text-lg">
               システムエンジニア、インフラエンジニア、ヘルプデスクサポートなどのアウトソーシングサービスをご提供しています。第一線で活躍してきたスペシャリストが、未経験からのキャリア形成も含めて伴走します。
             </p>
-            <div className="lp-animate-fade-up lp-delay-200 mt-10 flex flex-wrap gap-3">
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
-              >
-                お問い合わせへ
-              </Link>
-            </div>
           </div>
         </div>
 
