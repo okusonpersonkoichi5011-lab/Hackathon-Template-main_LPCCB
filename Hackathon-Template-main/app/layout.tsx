@@ -108,7 +108,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={inter.variable}>
+    // suppressHydrationWarning：
+    //   下の <head> 内インラインスクリプトが React の hydrate より先に走り
+    //   <html> から 'no-js' クラスを取り除くため、サーバ側HTMLと差分が出る。
+    //   この差分は「意図的」なものなので React の警告を抑止する。
+    <html lang="ja" className={`no-js ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        {/*
+          JS が動いた瞬間に <html> から 'no-js' を外す。
+          これにより、JS が無効／読み込み失敗の環境では Reveal の opacity:0 が解除され
+          画像・テキストが必ず表示されるフォールバックとして機能する。
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.documentElement.classList.remove('no-js');`,
+          }}
+        />
+      </head>
       <body className="flex min-h-screen flex-col font-sans">
         {/* 構造化データ（会社情報）。検索エンジン向けで、画面には表示されません。 */}
         <script

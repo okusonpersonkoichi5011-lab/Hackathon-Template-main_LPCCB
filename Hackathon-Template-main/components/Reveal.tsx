@@ -56,12 +56,19 @@ export function Reveal({
       return;
     }
 
+    // 安全網：何らかの理由で IntersectionObserver が発火しない場合でも
+    // 3秒経過したら必ず表示する（画像が「読み込まれない」ように見える事象の防止）
+    const safetyTimer = window.setTimeout(() => {
+      setInView(true);
+    }, 3000);
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
             setInView(true);
             observer.disconnect(); // 一度出したら以降は監視しない
+            window.clearTimeout(safetyTimer);
             break;
           }
         }
@@ -70,7 +77,10 @@ export function Reveal({
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(safetyTimer);
+    };
   }, [rootMargin]);
 
   // バリアントごとに in-view 時に当てるクラスを切り替え

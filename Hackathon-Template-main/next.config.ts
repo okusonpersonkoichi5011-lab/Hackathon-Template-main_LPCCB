@@ -61,6 +61,20 @@ const nextConfig: NextConfig = {
       process.env.NODE_ENV === "production" ? { exclude: ["error"] } : false,
   },
 
+  // ===== next/image の最適化設定 =====
+  //
+  // 「画像が時々読み込まれない」事象の対策:
+  //  - formats：AVIF → WebP の順に試し、軽い形式で配信（フォールバックで JPEG/PNG も使われる）
+  //  - minimumCacheTTL：最適化済み画像を長めにキャッシュ（30日）→
+  //    Vercel の Image Optimization の月次変換回数を節約し、初回以降を高速化
+  //  - dangerouslyAllowSVG：将来 SVG を使うとき用（現状未使用）
+  //  - contentDispositionType：ダウンロード強要を避け inline 表示
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 日
+    contentDispositionType: "inline",
+  },
+
   // 補足：
   //  - "Server: Vercel" 等のホスティング由来のヘッダはアプリ側から完全には削除できません
   //    （Vercel / CloudFront / Nginx などの最前面が付与するため）。

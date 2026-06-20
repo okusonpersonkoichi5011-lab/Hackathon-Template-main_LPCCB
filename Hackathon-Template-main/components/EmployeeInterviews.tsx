@@ -47,8 +47,8 @@ export function EmployeeInterviews({ interviews }: EmployeeInterviewsProps) {
                 delay={delay}
                 className="h-full"
               >
-                {/* 枠を固定：高さを揃え、長文は内部スクロール、短文では下に余白 */}
-                <article className="flex h-full min-h-[20rem] flex-col rounded-xl border border-border bg-surface p-6">
+                {/* 枠を揃える：同じ列の高さを auto-rows-fr で統一しつつ、最低高さは控えめに */}
+                <article className="flex h-full flex-col rounded-xl border border-border bg-surface p-5">
                   <div className="flex items-center gap-3">
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
                       <Image

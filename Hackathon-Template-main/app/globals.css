@@ -81,6 +81,12 @@ body {
   will-change: opacity, transform;
 }
 
+/* JavaScript が無効な環境では reveal-init を解除し、コンテンツを表示する */
+.no-js .reveal-init {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 /* Reveal が in-view になった後に付与する状態（フェードイン完了） */
 .reveal-in {
   animation: lp-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
