@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   EMAIL_RE,
   FieldError,
@@ -12,11 +12,15 @@ import {
   PHONE_RE,
   validatePdfFile,
 } from "@/components/form-utils";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import type { Lang } from "@/lib/i18n/types";
 
 /**
- * 採用エントリーフォーム（入力 → 確認 → 完了 の3段階・送信なしデモ）
- * - 必須=赤・任意=緑のバッジ付き 3 カラム行レイアウト
- * - 姓名・ふりがな分割／電話番号 1 行／住所必須（郵便番号自動入力）
+ * 採用エントリーフォーム（入力 → 確認 → 完了・日英対応）
+ * - 必須=赤・任意=緑バッジ + 3 カラム行レイアウト
+ * - 履歴書 PDF アップロード（3層検証）、職務経歴はテキスト/ファイル切替
+ * - 言語切替時はラベル・プレースホルダー・エラー・ボタンの全てが切り替わります
+ * - 英語表示時は「ふりがな」フィールドを非表示にします
  */
 
 type EmploymentType = "fulltime-newgrad" | "fulltime-career" | "parttime";
@@ -37,13 +41,9 @@ type RecruitData = {
   streetAddress: string;
   buildingName: string;
   employmentType: EmploymentType;
-  /** 履歴書（ファイルアップロード・全雇用形態で必須） */
   resumeFile: File | null;
-  /** 職務経歴の入力モード（テキスト or ファイル）。新卒採用では非表示。 */
   careerMode: CareerMode;
-  /** 職務経歴（テキスト入力モード時） */
   career: string;
-  /** 職務経歴（ファイルアップロードモード時） */
   careerFile: File | null;
   motivation: string;
 };
@@ -72,67 +72,228 @@ const initialData: RecruitData = {
   motivation: "",
 };
 
-const employmentTypeLabel: Record<EmploymentType, string> = {
-  "fulltime-newgrad": "正社員（新卒採用）",
-  "fulltime-career": "正社員（キャリア採用）",
-  parttime: "パート・アルバイト",
-};
-
-/** 新卒採用かどうか（職務経歴セクションの表示制御に使う） */
 const isNewGrad = (t: EmploymentType): boolean => t === "fulltime-newgrad";
 
-/**
- * 受け付ける履歴書／職務経歴ファイルは PDF のみ。
- * - input の accept 属性で .pdf / application/pdf 以外を選びにくくする
- * - 実際の防御は validatePdfFile（拡張子＋MIME＋マジックナンバー＋サーバ側 400）で行う
- */
 const FILE_ACCEPT = ".pdf,application/pdf";
 
-const validate = (data: RecruitData): RecruitErrors => {
+function getTexts(lang: Lang) {
+  const isEn = lang === "en";
+  return {
+    // ラベル
+    name: isEn ? "Name" : "お名前",
+    lastName: isEn ? "Family name" : "姓",
+    firstName: isEn ? "Given name" : "名",
+    kana: isEn ? "Furigana" : "ふりがな",
+    lastNameKana: isEn ? "Family name (hiragana)" : "せい",
+    firstNameKana: isEn ? "Given name (hiragana)" : "めい",
+    email: isEn ? "Email address" : "メールアドレス",
+    phone: isEn ? "Phone number" : "電話番号",
+    age: isEn ? "Age" : "年齢",
+    startDate: isEn ? "Earliest start date" : "就業可能時期",
+    postalCode: isEn ? "Postal code" : "郵便番号",
+    prefecture: isEn ? "Prefecture / State" : "都道府県",
+    city: isEn ? "City / Ward" : "市区町村",
+    streetAddress: isEn ? "Street address" : "字名・番地",
+    buildingName: isEn ? "Building / Company" : "建物名・会社名",
+    employmentType: isEn ? "Preferred employment type" : "ご希望の雇用形態",
+    resume: isEn ? "Resume (CV)" : "履歴書",
+    career: isEn ? "Work history" : "職務経歴",
+    motivation: isEn ? "Motivation & self-PR" : "志望動機・PR 事項など",
+
+    // 雇用形態の選択肢
+    fulltimeNewgrad: isEn ? "Full-time (new graduate)" : "正社員（新卒採用）",
+    fulltimeCareer: isEn ? "Full-time (career hire)" : "正社員（キャリア採用）",
+    parttime: isEn ? "Part-time" : "パート・アルバイト",
+    employmentNote: isEn
+      ? "* New graduates do not need to fill in work history (resume only)."
+      : "※ 新卒採用の方は、職務経歴の入力は不要です（履歴書のみ必須）。",
+
+    // 職務経歴モード
+    careerModeText: isEn ? "Enter as text" : "テキストで入力",
+    careerModeFile: isEn ? "Upload a file" : "ファイルをアップロード",
+
+    // プレースホルダー
+    phLastName: isEn ? "e.g. Smith" : "例：山田",
+    phFirstName: isEn ? "e.g. John" : "例：太郎",
+    phLastNameKana: "例：やまだ",
+    phFirstNameKana: "例：たろう",
+    phEmail: "you@example.com",
+    phPhone: isEn ? "+81 90 1234 5678" : "090-1234-5678",
+    phAge: isEn ? "e.g. 26" : "例：26",
+    phStartDate: isEn ? "e.g. From July 2026, immediately" : "例：2026年7月〜、即日 など",
+    phPostal: isEn ? "e.g. 1500043" : "例：1500043",
+    phPrefecture: isEn ? "e.g. Tokyo" : "例：東京都",
+    phCity: isEn ? "e.g. Shibuya-ku Dogenzaka" : "例：渋谷区道玄坂",
+    phStreet: isEn ? "e.g. 1-19-11" : "例：1-19-11",
+    phBuilding: isEn
+      ? "e.g. Kotobuki Dogenzaka Bldg 8F"
+      : "例：寿道玄坂ビル 8F／株式会社〇〇 など",
+    phCareerText: isEn
+      ? "Briefly describe your past roles and responsibilities."
+      : "これまでのご職業・担当業務などを簡単にご記入ください。",
+    phMotivation: isEn
+      ? "Please share your motivation and anything you would like us to know."
+      : "志望動機やアピールしたい点などをご記入ください。",
+
+    // ヒント
+    postalHint: isEn ? "Enter digits only, no hyphen." : "ハイフンを入れずに入力してください",
+    postalAutoFill: isEn
+      ? "▼ When you enter the postal code, part of the address is filled automatically."
+      : "▼ 郵便番号を入力すると、住所の一部が自動的に入力されます",
+    postalHelpLink: isEn ? "Look up postal codes ↗" : "郵便番号がわからない方はこちら ↗",
+    streetHint: isEn
+      ? "* Please make sure the address includes the building/lot number."
+      : "※ ご注意：ご住所が番地まで入力されているか、ご確認ください。",
+    fileHint: isEn
+      ? "Only PDF files (.pdf) can be uploaded."
+      : "PDF 形式（.pdf）のファイルのみアップロード可能です。",
+    selected: isEn ? "Selected" : "選択中",
+    chooseFile: isEn ? "Choose file" : "ファイルを選択",
+    changeFile: isEn ? "Change file" : "ファイルを変更",
+    noFileSelected: isEn ? "No file selected" : "選択されていません",
+
+    // 注意書き・ボタン
+    submitNote: isEn
+      ? "* Pressing “Review entries” shows a confirmation screen. Submission happens on that screen."
+      : "※「入力内容確認」を押すと、確認画面に内容が表示されます。送信は確認画面で行います。",
+    review: isEn ? "Review entries" : "入力内容確認",
+    contactNote: isEn
+      ? "For non-recruitment inquiries (projects, partnerships, etc.), please use the contact form below."
+      : "採用以外（案件・協業など）のご相談はこちらからご利用ください。",
+    contactCta: isEn ? "Go to contact form" : "お問い合わせはこちら",
+
+    // 確認画面
+    confirmIntro: isEn
+      ? "We will submit the following entries. To change any item, press “Edit”."
+      : "以下の内容で応募します。修正したい項目があれば「修正する」を押してください。",
+    sendDemo: isEn
+      ? "Submit (demo: nothing is actually sent)"
+      : "送信する（デモ：実際には送信されません）",
+    edit: isEn ? "Edit" : "修正する",
+    confirmLabels: {
+      name: isEn ? "Name" : "お名前",
+      kana: isEn ? "Furigana" : "ふりがな",
+      email: isEn ? "Email" : "メールアドレス",
+      phone: isEn ? "Phone" : "電話番号",
+      age: isEn ? "Age" : "年齢",
+      startDate: isEn ? "Earliest start date" : "就業可能時期",
+      address: isEn ? "Address" : "住所",
+      employmentType: isEn ? "Preferred employment type" : "ご希望の雇用形態",
+      resume: isEn ? "Resume" : "履歴書",
+      career: isEn ? "Work history" : "職務経歴",
+      motivation: isEn ? "Motivation & self-PR" : "志望動機・PR 事項など",
+    },
+    notEntered: isEn ? "(not entered)" : "（未入力）",
+
+    // 完了画面
+    doneTitle: isEn ? "Submission complete (demo)" : "送信が完了しました（デモ）",
+    doneBody: isEn
+      ? "Nothing was actually sent. In production, connect this form to a backend such as Formspree or Server Actions."
+      : "実際には送信されていません。本番運用時は Formspree や Server Actions などのバックエンドへ接続してください。",
+    submitAnother: isEn ? "Submit another application" : "続けて別の応募を入力する",
+
+    // エラー
+    err: {
+      lastName: isEn ? "Please enter your family name." : "姓を入力してください。",
+      firstName: isEn ? "Please enter your given name." : "名を入力してください。",
+      lastNameKana: isEn
+        ? "Please enter your family name in hiragana."
+        : "せい(ひらがな)を入力してください。",
+      lastNameKanaInvalid: isEn ? "Please use hiragana characters." : "ひらがなで入力してください。",
+      firstNameKana: isEn
+        ? "Please enter your given name in hiragana."
+        : "めい(ひらがな)を入力してください。",
+      firstNameKanaInvalid: isEn
+        ? "Please use hiragana characters."
+        : "ひらがなで入力してください。",
+      email: isEn ? "Please enter your email address." : "メールアドレスを入力してください。",
+      emailInvalid: isEn
+        ? "Please enter a valid email address (e.g. you@example.com)."
+        : "メールアドレスの形式で入力してください。(例:you@example.com)",
+      phone: isEn ? "Please enter your phone number." : "電話番号を入力してください。",
+      phoneInvalid: isEn
+        ? "Please use digits, hyphens, etc. only."
+        : "電話番号は半角数字・ハイフン等で入力してください。",
+      age: isEn
+        ? "Age must be a whole number between 16 and 99."
+        : "年齢は16〜99の半角数字で入力してください。",
+      startDate: isEn ? "Please enter your earliest start date." : "就業可能時期を入力してください。",
+      postalCode: isEn ? "Please enter your postal code." : "郵便番号を入力してください。",
+      postalCodeInvalid: isEn
+        ? "Postal code must be 7 digits."
+        : "郵便番号は7桁の半角数字で入力してください。",
+      prefecture: isEn ? "Please enter the prefecture / state." : "都道府県を入力してください。",
+      city: isEn ? "Please enter the city / ward." : "市区町村を入力してください。",
+      streetAddress: isEn ? "Please enter the street address." : "字名・番地を入力してください。",
+      resumeFile: isEn
+        ? "Please upload your resume file."
+        : "履歴書ファイルをアップロードしてください。",
+      career: isEn ? "Please enter your work history." : "職務経歴を入力してください。",
+      careerFile: isEn
+        ? "Please upload a work history file."
+        : "職務経歴のファイルをアップロードしてください。",
+      motivation: isEn
+        ? "Please enter your motivation / self-PR."
+        : "志望動機・PR 事項を入力してください。",
+    },
+  };
+}
+
+const validate = (data: RecruitData, lang: Lang): RecruitErrors => {
   const e: RecruitErrors = {};
-  if (!data.lastName.trim()) e.lastName = "姓を入力してください。";
-  if (!data.firstName.trim()) e.firstName = "名を入力してください。";
-  if (!data.lastNameKana.trim()) e.lastNameKana = "せい(ひらがな)を入力してください。";
-  else if (!HIRAGANA_RE.test(data.lastNameKana)) e.lastNameKana = "ひらがなで入力してください。";
-  if (!data.firstNameKana.trim()) e.firstNameKana = "めい(ひらがな)を入力してください。";
-  else if (!HIRAGANA_RE.test(data.firstNameKana)) e.firstNameKana = "ひらがなで入力してください。";
-  if (!data.email.trim()) e.email = "メールアドレスを入力してください。";
-  else if (!EMAIL_RE.test(data.email))
-    e.email = "メールアドレスの形式で入力してください。(例:you@example.com)";
-  if (!data.phone.trim()) e.phone = "電話番号を入力してください。";
-  else if (!PHONE_RE.test(data.phone))
-    e.phone = "電話番号は半角数字・ハイフン等で入力してください。";
+  const t = getTexts(lang).err;
+  if (!data.lastName.trim()) e.lastName = t.lastName;
+  if (!data.firstName.trim()) e.firstName = t.firstName;
+  // ふりがなは日本語表示時のみチェック
+  if (lang === "ja") {
+    if (!data.lastNameKana.trim()) e.lastNameKana = t.lastNameKana;
+    else if (!HIRAGANA_RE.test(data.lastNameKana)) e.lastNameKana = t.lastNameKanaInvalid;
+    if (!data.firstNameKana.trim()) e.firstNameKana = t.firstNameKana;
+    else if (!HIRAGANA_RE.test(data.firstNameKana)) e.firstNameKana = t.firstNameKanaInvalid;
+  }
+  if (!data.email.trim()) e.email = t.email;
+  else if (!EMAIL_RE.test(data.email)) e.email = t.emailInvalid;
+  if (!data.phone.trim()) e.phone = t.phone;
+  else if (!PHONE_RE.test(data.phone)) e.phone = t.phoneInvalid;
   if (data.age.trim()) {
     const n = Number(data.age);
-    if (!Number.isInteger(n) || n < 16 || n > 99)
-      e.age = "年齢は16〜99の半角数字で入力してください。";
+    if (!Number.isInteger(n) || n < 16 || n > 99) e.age = t.age;
   }
-  if (!data.startDate.trim()) e.startDate = "就業可能時期を入力してください。";
+  if (!data.startDate.trim()) e.startDate = t.startDate;
   const postalDigits = data.postalCode.replace(/[^0-9]/g, "");
-  if (!data.postalCode.trim()) e.postalCode = "郵便番号を入力してください。";
-  else if (postalDigits.length !== 7)
-    e.postalCode = "郵便番号は7桁の半角数字で入力してください。";
-  if (!data.prefecture.trim()) e.prefecture = "都道府県を入力してください。";
-  if (!data.city.trim()) e.city = "市区町村を入力してください。";
-  if (!data.streetAddress.trim()) e.streetAddress = "字名・番地を入力してください。";
+  if (!data.postalCode.trim()) e.postalCode = t.postalCode;
+  else if (postalDigits.length !== 7) e.postalCode = t.postalCodeInvalid;
+  if (!data.prefecture.trim()) e.prefecture = t.prefecture;
+  if (!data.city.trim()) e.city = t.city;
+  if (!data.streetAddress.trim()) e.streetAddress = t.streetAddress;
 
-  // 履歴書は全雇用形態で必須（ファイルアップロード）
-  if (!data.resumeFile) e.resumeFile = "履歴書ファイルをアップロードしてください。";
+  if (!data.resumeFile) e.resumeFile = t.resumeFile;
 
-  // 職務経歴：新卒採用は不要、それ以外（キャリア採用・パート）は必須
   if (!isNewGrad(data.employmentType)) {
     if (data.careerMode === "text") {
-      if (!data.career.trim()) e.career = "職務経歴を入力してください。";
+      if (!data.career.trim()) e.career = t.career;
     } else if (data.careerMode === "file") {
-      if (!data.careerFile) e.careerFile = "職務経歴のファイルをアップロードしてください。";
+      if (!data.careerFile) e.careerFile = t.careerFile;
     }
   }
 
-  if (!data.motivation.trim()) e.motivation = "志望動機・PR 事項を入力してください。";
+  if (!data.motivation.trim()) e.motivation = t.motivation;
   return e;
 };
 
 export function RecruitForm() {
+  const { lang } = useLanguage();
+  // 言語が変わった時だけ文言バンドルを再生成
+  const texts = useMemo(() => getTexts(lang), [lang]);
+  const employmentTypeLabel: Record<EmploymentType, string> = useMemo(
+    () => ({
+      "fulltime-newgrad": texts.fulltimeNewgrad,
+      "fulltime-career": texts.fulltimeCareer,
+      parttime: texts.parttime,
+    }),
+    [texts.fulltimeNewgrad, texts.fulltimeCareer, texts.parttime],
+  );
+
   const [data, setData] = useState<RecruitData>(initialData);
   const [step, setStep] = useState<"input" | "confirm" | "done">("input");
   const [errors, setErrors] = useState<RecruitErrors>({});
@@ -170,18 +331,10 @@ export function RecruitForm() {
     }
   };
 
-  /**
-   * ファイル選択時の共通ハンドラ:
-   *  - 解除（null）はそのまま受け入れる
-   *  - 拡張子・MIME・先頭バイトをクライアント側で確認 → サーバ側 /api/upload-resume にも POST し
-   *    両方を通った PDF のみ state に格納
-   *  - 失敗時は state を null に戻し、エラー文を表示。input 値も空にして同じファイルを再選択可能に
-   */
   const onFileFieldChange = async (
     key: "resumeFile" | "careerFile",
     inputEl: HTMLInputElement,
   ) => {
-    /** key で示すフィールドだけ File|null に書き換えるヘルパ（型安全に） */
     const setFileField = (value: File | null) => {
       setData((prev) => {
         const next = { ...prev };
@@ -195,15 +348,13 @@ export function RecruitForm() {
       setFileField(null);
       return;
     }
-    const error = await validatePdfFile(file);
+    const error = await validatePdfFile(file, lang);
     if (error) {
       setFileField(null);
       setErrors((prev) => ({ ...prev, [key]: error }));
-      // 同じファイルを再選択できるようにリセット
       inputEl.value = "";
       return;
     }
-    // 通過：ファイルを保存し、その項目のエラーは消す
     setFileField(file);
     setErrors((prev) => {
       if (!prev[key]) return prev;
@@ -222,7 +373,7 @@ export function RecruitForm() {
 
   const handleInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const v = validate(data);
+    const v = validate(data, lang);
     if (Object.keys(v).length > 0) {
       setErrors(v);
       scrollToFormTop();
@@ -235,7 +386,6 @@ export function RecruitForm() {
 
   const handleSendSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // ★本番ではここで API/Server Actions に送信。今はデモのため送信しません。
     setStep("done");
     scrollToFormTop();
   };
@@ -245,35 +395,42 @@ export function RecruitForm() {
     scrollToFormTop();
   };
 
-  // 確認画面：複数欄をまとめた表示
   const confirmRows: { label: string; value: string }[] = [
-    { label: "お名前", value: `${data.lastName} ${data.firstName}`.trim() },
-    { label: "ふりがな", value: `${data.lastNameKana} ${data.firstNameKana}`.trim() },
-    { label: "メールアドレス", value: data.email },
-    { label: "電話番号", value: data.phone },
-    { label: "年齢", value: data.age },
-    { label: "就業可能時期", value: data.startDate },
+    { label: texts.confirmLabels.name, value: `${data.lastName} ${data.firstName}`.trim() },
+    ...(lang === "ja"
+      ? [
+          {
+            label: texts.confirmLabels.kana,
+            value: `${data.lastNameKana} ${data.firstNameKana}`.trim(),
+          },
+        ]
+      : []),
+    { label: texts.confirmLabels.email, value: data.email },
+    { label: texts.confirmLabels.phone, value: data.phone },
+    { label: texts.confirmLabels.age, value: data.age },
+    { label: texts.confirmLabels.startDate, value: data.startDate },
     {
-      label: "住所",
+      label: texts.confirmLabels.address,
       value: [
-        data.postalCode ? `〒${data.postalCode}` : "",
+        data.postalCode ? (lang === "en" ? data.postalCode : `〒${data.postalCode}`) : "",
         `${data.prefecture}${data.city}${data.streetAddress}`,
         data.buildingName,
       ]
         .filter((s) => s && s.trim())
         .join("\n"),
     },
-    { label: "ご希望の雇用形態", value: employmentTypeLabel[data.employmentType] },
+    { label: texts.confirmLabels.employmentType, value: employmentTypeLabel[data.employmentType] },
     {
-      label: "履歴書",
-      value: data.resumeFile ? `${data.resumeFile.name}（${Math.round(data.resumeFile.size / 1024)} KB）` : "",
+      label: texts.confirmLabels.resume,
+      value: data.resumeFile
+        ? `${data.resumeFile.name}（${Math.round(data.resumeFile.size / 1024)} KB）`
+        : "",
     },
-    // 職務経歴：新卒採用では非表示、それ以外はテキストまたはファイル
     ...(isNewGrad(data.employmentType)
       ? []
       : [
           {
-            label: "職務経歴",
+            label: texts.confirmLabels.career,
             value:
               data.careerMode === "file"
                 ? data.careerFile
@@ -282,18 +439,15 @@ export function RecruitForm() {
                 : data.career,
           },
         ]),
-    { label: "志望動機・PR 事項など", value: data.motivation },
+    { label: texts.confirmLabels.motivation, value: data.motivation },
   ];
 
   return (
     <div ref={containerRef} className="scroll-mt-24">
       {step === "done" ? (
-        // 完了画面（デモ）
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
-          <h2 className="text-lg font-semibold text-slate-900">送信が完了しました（デモ）</h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            実際には送信されていません。本番運用時は Formspree や Server Actions などのバックエンドへ接続してください。
-          </p>
+          <h2 className="text-lg font-semibold text-slate-900">{texts.doneTitle}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{texts.doneBody}</p>
           <button
             type="button"
             onClick={() => {
@@ -304,15 +458,12 @@ export function RecruitForm() {
             }}
             className="mt-6 inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
           >
-            続けて別の応募を入力する
+            {texts.submitAnother}
           </button>
         </div>
       ) : step === "confirm" ? (
-        // 確認画面
         <form onSubmit={handleSendSubmit} className="space-y-6">
-          <p className="text-sm text-muted-foreground">
-            以下の内容で応募します。修正したい項目があれば「修正する」を押してください。
-          </p>
+          <p className="text-sm text-muted-foreground">{texts.confirmIntro}</p>
           <dl className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
             {confirmRows.map(({ label, value }) => (
               <div
@@ -321,7 +472,7 @@ export function RecruitForm() {
               >
                 <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
                 <dd className="whitespace-pre-wrap break-words text-sm text-slate-900">
-                  {value || <span className="text-muted-foreground">（未入力）</span>}
+                  {value || <span className="text-muted-foreground">{texts.notEntered}</span>}
                 </dd>
               </div>
             ))}
@@ -331,30 +482,29 @@ export function RecruitForm() {
               type="submit"
               className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
-              送信する（デモ：実際には送信されません）
+              {texts.sendDemo}
             </button>
             <button
               type="button"
               onClick={backToEdit}
               className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-3 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
             >
-              修正する
+              {texts.edit}
             </button>
           </div>
         </form>
       ) : (
-        // 入力画面（3カラム行レイアウト）
         <form
           onSubmit={handleInputSubmit}
           className="divide-y divide-border border-y border-border"
           noValidate
         >
-          {/* お名前（姓・名） */}
-          <FieldRow badge="required" label="お名前">
+          {/* 名前 */}
+          <FieldRow badge="required" label={texts.name} lang={lang}>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <div className="flex items-start gap-2">
                 <label htmlFor="lastName" className="w-10 shrink-0 pt-2 text-sm text-slate-700">
-                  姓
+                  {texts.lastName}
                 </label>
                 <div className="flex-1">
                   <input
@@ -362,7 +512,7 @@ export function RecruitForm() {
                     type="text"
                     autoComplete="family-name"
                     maxLength={30}
-                    placeholder="例：山田"
+                    placeholder={texts.phLastName}
                     value={data.lastName}
                     onChange={(e) => set("lastName", e.target.value)}
                     aria-invalid={!!errors.lastName}
@@ -374,7 +524,7 @@ export function RecruitForm() {
               </div>
               <div className="flex items-start gap-2">
                 <label htmlFor="firstName" className="w-10 shrink-0 pt-2 text-sm text-slate-700">
-                  名
+                  {texts.firstName}
                 </label>
                 <div className="flex-1">
                   <input
@@ -382,7 +532,7 @@ export function RecruitForm() {
                     type="text"
                     autoComplete="given-name"
                     maxLength={30}
-                    placeholder="例：太郎"
+                    placeholder={texts.phFirstName}
                     value={data.firstName}
                     onChange={(e) => set("firstName", e.target.value)}
                     aria-invalid={!!errors.firstName}
@@ -395,58 +545,66 @@ export function RecruitForm() {
             </div>
           </FieldRow>
 
-          {/* ふりがな（せい・めい） */}
-          <FieldRow badge="required" label="ふりがな">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-              <div className="flex items-start gap-2">
-                <label htmlFor="lastNameKana" className="w-10 shrink-0 pt-2 text-sm text-slate-700">
-                  せい
-                </label>
-                <div className="flex-1">
-                  <input
-                    id="lastNameKana"
-                    type="text"
-                    maxLength={40}
-                    placeholder="例：やまだ"
-                    value={data.lastNameKana}
-                    onChange={(e) => set("lastNameKana", e.target.value)}
-                    aria-invalid={!!errors.lastNameKana}
-                    aria-describedby={errors.lastNameKana ? "lastNameKana-error" : undefined}
-                    className={inputClass(!!errors.lastNameKana)}
-                  />
-                  <FieldError id="lastNameKana-error" error={errors.lastNameKana} />
+          {/* ふりがな（日本語表示時のみ） */}
+          {lang === "ja" && (
+            <FieldRow badge="required" label={texts.kana} lang={lang}>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                <div className="flex items-start gap-2">
+                  <label
+                    htmlFor="lastNameKana"
+                    className="w-10 shrink-0 pt-2 text-sm text-slate-700"
+                  >
+                    {texts.lastNameKana}
+                  </label>
+                  <div className="flex-1">
+                    <input
+                      id="lastNameKana"
+                      type="text"
+                      maxLength={40}
+                      placeholder={texts.phLastNameKana}
+                      value={data.lastNameKana}
+                      onChange={(e) => set("lastNameKana", e.target.value)}
+                      aria-invalid={!!errors.lastNameKana}
+                      aria-describedby={errors.lastNameKana ? "lastNameKana-error" : undefined}
+                      className={inputClass(!!errors.lastNameKana)}
+                    />
+                    <FieldError id="lastNameKana-error" error={errors.lastNameKana} />
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <label
+                    htmlFor="firstNameKana"
+                    className="w-10 shrink-0 pt-2 text-sm text-slate-700"
+                  >
+                    {texts.firstNameKana}
+                  </label>
+                  <div className="flex-1">
+                    <input
+                      id="firstNameKana"
+                      type="text"
+                      maxLength={40}
+                      placeholder={texts.phFirstNameKana}
+                      value={data.firstNameKana}
+                      onChange={(e) => set("firstNameKana", e.target.value)}
+                      aria-invalid={!!errors.firstNameKana}
+                      aria-describedby={errors.firstNameKana ? "firstNameKana-error" : undefined}
+                      className={inputClass(!!errors.firstNameKana)}
+                    />
+                    <FieldError id="firstNameKana-error" error={errors.firstNameKana} />
+                  </div>
                 </div>
               </div>
-              <div className="flex items-start gap-2">
-                <label htmlFor="firstNameKana" className="w-10 shrink-0 pt-2 text-sm text-slate-700">
-                  めい
-                </label>
-                <div className="flex-1">
-                  <input
-                    id="firstNameKana"
-                    type="text"
-                    maxLength={40}
-                    placeholder="例：たろう"
-                    value={data.firstNameKana}
-                    onChange={(e) => set("firstNameKana", e.target.value)}
-                    aria-invalid={!!errors.firstNameKana}
-                    aria-describedby={errors.firstNameKana ? "firstNameKana-error" : undefined}
-                    className={inputClass(!!errors.firstNameKana)}
-                  />
-                  <FieldError id="firstNameKana-error" error={errors.firstNameKana} />
-                </div>
-              </div>
-            </div>
-          </FieldRow>
+            </FieldRow>
+          )}
 
           {/* メールアドレス */}
-          <FieldRow badge="required" label="メールアドレス" htmlFor="email">
+          <FieldRow badge="required" label={texts.email} htmlFor="email" lang={lang}>
             <input
               id="email"
               type="email"
               autoComplete="email"
               maxLength={254}
-              placeholder="you@example.com"
+              placeholder={texts.phEmail}
               value={data.email}
               onChange={(e) => set("email", e.target.value)}
               aria-invalid={!!errors.email}
@@ -456,14 +614,14 @@ export function RecruitForm() {
             <FieldError id="email-error" error={errors.email} />
           </FieldRow>
 
-          {/* 電話番号（住所のように1行で表示） */}
-          <FieldRow badge="required" label="電話番号" htmlFor="phone">
+          {/* 電話番号 */}
+          <FieldRow badge="required" label={texts.phone} htmlFor="phone" lang={lang}>
             <input
               id="phone"
               type="tel"
               autoComplete="tel"
               maxLength={20}
-              placeholder="090-1234-5678"
+              placeholder={texts.phPhone}
               value={data.phone}
               onChange={(e) => set("phone", e.target.value)}
               aria-invalid={!!errors.phone}
@@ -474,13 +632,13 @@ export function RecruitForm() {
           </FieldRow>
 
           {/* 年齢 */}
-          <FieldRow badge="optional" label="年齢" htmlFor="age">
+          <FieldRow badge="optional" label={texts.age} htmlFor="age" lang={lang}>
             <input
               id="age"
               type="number"
               min={16}
               max={99}
-              placeholder="例：26"
+              placeholder={texts.phAge}
               value={data.age}
               onChange={(e) => set("age", e.target.value)}
               aria-invalid={!!errors.age}
@@ -491,12 +649,12 @@ export function RecruitForm() {
           </FieldRow>
 
           {/* 就業可能時期 */}
-          <FieldRow badge="required" label="就業可能時期" htmlFor="startDate">
+          <FieldRow badge="required" label={texts.startDate} htmlFor="startDate" lang={lang}>
             <input
               id="startDate"
               type="text"
               maxLength={60}
-              placeholder="例：2026年7月〜、即日 など"
+              placeholder={texts.phStartDate}
               value={data.startDate}
               onChange={(e) => set("startDate", e.target.value)}
               aria-invalid={!!errors.startDate}
@@ -506,8 +664,8 @@ export function RecruitForm() {
             <FieldError id="startDate-error" error={errors.startDate} />
           </FieldRow>
 
-          {/* 郵便番号（7桁で住所自動入力） */}
-          <FieldRow badge="required" label="郵便番号" htmlFor="postalCode">
+          {/* 郵便番号 */}
+          <FieldRow badge="required" label={texts.postalCode} htmlFor="postalCode" lang={lang}>
             <div className="flex flex-wrap items-center gap-3">
               <input
                 id="postalCode"
@@ -515,7 +673,7 @@ export function RecruitForm() {
                 autoComplete="postal-code"
                 inputMode="numeric"
                 maxLength={8}
-                placeholder="例：1500043"
+                placeholder={texts.phPostal}
                 value={data.postalCode}
                 onChange={(e) => onPostalCodeChange(e.target.value)}
                 aria-invalid={!!errors.postalCode}
@@ -528,26 +686,24 @@ export function RecruitForm() {
                 rel="noopener noreferrer"
                 className="text-xs text-slate-700 underline underline-offset-2 hover:text-slate-900"
               >
-                郵便番号がわからない方はこちら ↗
+                {texts.postalHelpLink}
               </a>
             </div>
             <p id="postalCode-hint" className="mt-1 text-xs text-muted-foreground">
-              ハイフンを入れずに入力してください
+              {texts.postalHint}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              ▼ 郵便番号を入力すると、住所の一部が自動的に入力されます
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{texts.postalAutoFill}</p>
             <FieldError id="postalCode-error" error={errors.postalCode} />
           </FieldRow>
 
           {/* 都道府県 */}
-          <FieldRow badge="required" label="都道府県" htmlFor="prefecture">
+          <FieldRow badge="required" label={texts.prefecture} htmlFor="prefecture" lang={lang}>
             <input
               id="prefecture"
               type="text"
               autoComplete="address-level1"
               maxLength={20}
-              placeholder="例：東京都"
+              placeholder={texts.phPrefecture}
               value={data.prefecture}
               onChange={(e) => set("prefecture", e.target.value)}
               aria-invalid={!!errors.prefecture}
@@ -558,13 +714,13 @@ export function RecruitForm() {
           </FieldRow>
 
           {/* 市区町村 */}
-          <FieldRow badge="required" label="市区町村" htmlFor="city">
+          <FieldRow badge="required" label={texts.city} htmlFor="city" lang={lang}>
             <input
               id="city"
               type="text"
               autoComplete="address-level2"
               maxLength={50}
-              placeholder="例：渋谷区道玄坂"
+              placeholder={texts.phCity}
               value={data.city}
               onChange={(e) => set("city", e.target.value)}
               aria-invalid={!!errors.city}
@@ -575,47 +731,55 @@ export function RecruitForm() {
           </FieldRow>
 
           {/* 字名・番地 */}
-          <FieldRow badge="required" label="字名・番地" htmlFor="streetAddress">
+          <FieldRow
+            badge="required"
+            label={texts.streetAddress}
+            htmlFor="streetAddress"
+            lang={lang}
+          >
             <input
               id="streetAddress"
               type="text"
               autoComplete="street-address"
               maxLength={100}
-              placeholder="例：1-19-11"
+              placeholder={texts.phStreet}
               value={data.streetAddress}
               onChange={(e) => set("streetAddress", e.target.value)}
               aria-invalid={!!errors.streetAddress}
-              aria-describedby={errors.streetAddress ? "streetAddress-error" : "streetAddress-hint"}
+              aria-describedby={
+                errors.streetAddress ? "streetAddress-error" : "streetAddress-hint"
+              }
               className={inputClass(!!errors.streetAddress)}
             />
             <p id="streetAddress-hint" className="mt-1 text-xs text-muted-foreground">
-              ※ ご注意：ご住所が番地まで入力されているか、ご確認ください。
+              {texts.streetHint}
             </p>
             <FieldError id="streetAddress-error" error={errors.streetAddress} />
           </FieldRow>
 
           {/* 建物名・会社名 */}
-          <FieldRow badge="optional" label="建物名・会社名" htmlFor="buildingName">
+          <FieldRow
+            badge="optional"
+            label={texts.buildingName}
+            htmlFor="buildingName"
+            lang={lang}
+          >
             <input
               id="buildingName"
               type="text"
               maxLength={100}
-              placeholder="例：寿道玄坂ビル 8F／株式会社〇〇 など"
+              placeholder={texts.phBuilding}
               value={data.buildingName}
               onChange={(e) => set("buildingName", e.target.value)}
               className={inputClass(false)}
             />
           </FieldRow>
 
-          {/* ご希望の雇用形態（3区分のラジオ選択） */}
-          <FieldRow badge="required" label="ご希望の雇用形態">
+          {/* 雇用形態 */}
+          <FieldRow badge="required" label={texts.employmentType} lang={lang}>
             <div className="space-y-2">
               {(
-                [
-                  "fulltime-newgrad",
-                  "fulltime-career",
-                  "parttime",
-                ] as EmploymentType[]
+                ["fulltime-newgrad", "fulltime-career", "parttime"] as EmploymentType[]
               ).map((type) => (
                 <label key={type} className="flex items-center gap-2 text-sm text-slate-900">
                   <input
@@ -630,42 +794,48 @@ export function RecruitForm() {
                 </label>
               ))}
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              ※ 新卒採用の方は、職務経歴の入力は不要です（履歴書のみ必須）。
-            </p>
+            <p className="mt-2 text-xs text-muted-foreground">{texts.employmentNote}</p>
           </FieldRow>
 
-          {/* 履歴書（全雇用形態で必須・PDF のみ） */}
-          <FieldRow badge="required" label="履歴書" htmlFor="resumeFile">
+          {/* 履歴書（カスタム UI でブラウザ既定の日本語表示を回避） */}
+          <FieldRow badge="required" label={texts.resume} htmlFor="resumeFile" lang={lang}>
+            {/* 入力本体は sr-only で隠し、見えるラベル（ボタン状）から操作する。
+                これにより「ファイルを選択」「選択されていません」のブラウザ既定テキストを
+                自前の翻訳語に置き換えできる。 */}
             <input
               id="resumeFile"
               type="file"
               accept={FILE_ACCEPT}
               onChange={(e) => {
-                // React の合成イベントは async 後 currentTarget が null になり得るため
-                // DOM 参照をローカルにつかんでから検証する
                 const inputEl = e.currentTarget;
                 void onFileFieldChange("resumeFile", inputEl);
               }}
               aria-invalid={!!errors.resumeFile}
               aria-describedby={errors.resumeFile ? "resumeFile-error" : "resumeFile-hint"}
-              className="block w-full text-sm text-slate-900 file:mr-3 file:rounded file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:opacity-90"
+              className="sr-only"
             />
-            {data.resumeFile && (
-              <p className="mt-1 text-xs text-slate-700">
-                選択中：{data.resumeFile.name}（{Math.round(data.resumeFile.size / 1024)} KB）
-              </p>
-            )}
+            <div className="flex flex-wrap items-center gap-3">
+              <label
+                htmlFor="resumeFile"
+                className="inline-flex cursor-pointer items-center justify-center rounded bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
+              >
+                {data.resumeFile ? texts.changeFile : texts.chooseFile}
+              </label>
+              <span className="text-xs text-slate-700">
+                {data.resumeFile
+                  ? `${data.resumeFile.name}（${Math.round(data.resumeFile.size / 1024)} KB）`
+                  : texts.noFileSelected}
+              </span>
+            </div>
             <p id="resumeFile-hint" className="mt-1 text-xs text-muted-foreground">
-              PDF 形式（.pdf）のファイルのみアップロード可能です。
+              {texts.fileHint}
             </p>
             <FieldError id="resumeFile-error" error={errors.resumeFile} />
           </FieldRow>
 
-          {/* 職務経歴（新卒採用では非表示。それ以外はテキスト or ファイル選択） */}
+          {/* 職務経歴 */}
           {!isNewGrad(data.employmentType) && (
-            <FieldRow badge="required" label="職務経歴">
-              {/* 入力モードの切替（テキスト or ファイル） */}
+            <FieldRow badge="required" label={texts.career} lang={lang}>
               <div className="mb-3 flex flex-wrap gap-4 text-sm text-slate-900">
                 <label className="flex items-center gap-2">
                   <input
@@ -676,7 +846,7 @@ export function RecruitForm() {
                     onChange={() => set("careerMode", "text")}
                     className="h-4 w-4 accent-primary"
                   />
-                  <span>テキストで入力</span>
+                  <span>{texts.careerModeText}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input
@@ -687,7 +857,7 @@ export function RecruitForm() {
                     onChange={() => set("careerMode", "file")}
                     className="h-4 w-4 accent-primary"
                   />
-                  <span>ファイルをアップロード</span>
+                  <span>{texts.careerModeFile}</span>
                 </label>
               </div>
 
@@ -697,7 +867,7 @@ export function RecruitForm() {
                     id="career"
                     rows={4}
                     maxLength={2000}
-                    placeholder="これまでのご職業・担当業務などを簡単にご記入ください。"
+                    placeholder={texts.phCareerText}
                     value={data.career}
                     onChange={(e) => set("career", e.target.value)}
                     aria-invalid={!!errors.career}
@@ -708,6 +878,7 @@ export function RecruitForm() {
                 </>
               ) : (
                 <>
+                  {/* 職務経歴ファイル：同じくカスタム UI に */}
                   <input
                     id="careerFile"
                     type="file"
@@ -718,15 +889,23 @@ export function RecruitForm() {
                     }}
                     aria-invalid={!!errors.careerFile}
                     aria-describedby={errors.careerFile ? "careerFile-error" : "careerFile-hint"}
-                    className="block w-full text-sm text-slate-900 file:mr-3 file:rounded file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:opacity-90"
+                    className="sr-only"
                   />
-                  {data.careerFile && (
-                    <p className="mt-1 text-xs text-slate-700">
-                      選択中：{data.careerFile.name}（{Math.round(data.careerFile.size / 1024)} KB）
-                    </p>
-                  )}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="careerFile"
+                      className="inline-flex cursor-pointer items-center justify-center rounded bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
+                    >
+                      {data.careerFile ? texts.changeFile : texts.chooseFile}
+                    </label>
+                    <span className="text-xs text-slate-700">
+                      {data.careerFile
+                        ? `${data.careerFile.name}（${Math.round(data.careerFile.size / 1024)} KB）`
+                        : texts.noFileSelected}
+                    </span>
+                  </div>
                   <p id="careerFile-hint" className="mt-1 text-xs text-muted-foreground">
-                    PDF 形式（.pdf）のファイルのみアップロード可能です。
+                    {texts.fileHint}
                   </p>
                   <FieldError id="careerFile-error" error={errors.careerFile} />
                 </>
@@ -734,13 +913,13 @@ export function RecruitForm() {
             </FieldRow>
           )}
 
-          {/* 志望動機・PR 事項 */}
-          <FieldRow badge="required" label="志望動機・PR 事項など" htmlFor="motivation">
+          {/* 志望動機 */}
+          <FieldRow badge="required" label={texts.motivation} htmlFor="motivation" lang={lang}>
             <textarea
               id="motivation"
               rows={5}
               maxLength={2000}
-              placeholder="志望動機やアピールしたい点などをご記入ください。"
+              placeholder={texts.phMotivation}
               value={data.motivation}
               onChange={(e) => set("motivation", e.target.value)}
               aria-invalid={!!errors.motivation}
@@ -752,26 +931,20 @@ export function RecruitForm() {
 
           {/* 注意書きと送信ボタン */}
           <div className="space-y-5 pt-6">
-            <p className="text-xs text-muted-foreground">
-              ※「入力内容確認」を押すと、確認画面に内容が表示されます。送信は確認画面で行います。
-            </p>
-            {/* 入力内容確認ボタン（注意書きの直下） */}
+            <p className="text-xs text-muted-foreground">{texts.submitNote}</p>
             <button
               type="submit"
               className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
-              入力内容確認
+              {texts.review}
             </button>
 
-            <p className="pt-4 text-xs text-muted-foreground">
-              採用以外（案件・協業など）のご相談はこちらからご利用ください。
-            </p>
-            {/* お問い合わせページへの導線（黄色・お問い合わせフォーム送信ボタンと同じく常に全幅） */}
+            <p className="pt-4 text-xs text-muted-foreground">{texts.contactNote}</p>
             <Link
               href="/contact"
               className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
-              お問い合わせはこちら
+              {texts.contactCta}
             </Link>
           </div>
         </form>

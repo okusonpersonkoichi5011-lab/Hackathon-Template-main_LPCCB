@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   EMAIL_RE,
   FieldError,
@@ -11,13 +11,18 @@ import {
   inputClass,
   PHONE_RE,
 } from "@/components/form-utils";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import type { Lang } from "@/lib/i18n/types";
 
 /**
- * お問い合わせフォーム（入力 → 確認 → 完了 の3段階・送信なしデモ）
+ * お問い合わせフォーム（入力 → 確認 → 完了 の3段階・送信なしデモ・日英対応）
  * - 必須=赤・任意=緑のバッジ付き 3 カラム行レイアウト
  * - 姓名・ふりがな分割／電話番号 1 行／住所必須（郵便番号・都道府県・市区町村・字名番地）
  * - 郵便番号を 7 桁入力すると住所が自動で入る（zipcloud API）
  * - 各項目下に赤字エラー、入力修正で自動クリア
+ *
+ * 言語切替時はラベル・プレースホルダー・エラーメッセージ・ボタン文言の全てが切り替わります。
+ * 英語表示時は「ふりがな」フィールドを非表示にします（英語圏ユーザには不要のため）。
  */
 
 type ContactData = {
@@ -56,32 +61,158 @@ const initialData: ContactData = {
   message: "",
 };
 
-const validate = (data: ContactData): ContactErrors => {
+/** 言語ごとの文言バンドル */
+function getTexts(lang: Lang) {
+  const isEn = lang === "en";
+  return {
+    // ラベル
+    name: isEn ? "Name" : "お名前",
+    lastName: isEn ? "Family name" : "姓",
+    firstName: isEn ? "Given name" : "名",
+    kana: isEn ? "Furigana (Japanese reading)" : "ふりがな",
+    lastNameKana: isEn ? "Family name (hiragana)" : "せい",
+    firstNameKana: isEn ? "Given name (hiragana)" : "めい",
+    email: isEn ? "Email address" : "メールアドレス",
+    company: isEn ? "Company name" : "御社名",
+    phone: isEn ? "Phone number" : "電話番号",
+    postalCode: isEn ? "Postal code" : "郵便番号",
+    prefecture: isEn ? "Prefecture / State" : "都道府県",
+    city: isEn ? "City / Ward" : "市区町村",
+    streetAddress: isEn ? "Street address" : "字名・番地",
+    buildingName: isEn ? "Building / Company" : "建物名・会社名",
+    subject: isEn ? "Subject" : "件名",
+    message: isEn ? "Message" : "お問い合わせ内容",
+    // プレースホルダー
+    phLastName: isEn ? "e.g. Smith" : "例：山田",
+    phFirstName: isEn ? "e.g. John" : "例：太郎",
+    phLastNameKana: "例：やまだ",
+    phFirstNameKana: "例：たろう",
+    phEmail: "you@example.com",
+    phCompany: isEn ? "Your Company Inc." : "株式会社〇〇",
+    phPhone: isEn ? "+81 90 1234 5678" : "090-1234-5678",
+    phPostal: isEn ? "e.g. 1500043" : "例：1500043",
+    phPrefecture: isEn ? "e.g. Tokyo" : "例：東京都",
+    phCity: isEn ? "e.g. Shibuya-ku Dogenzaka" : "例：渋谷区道玄坂",
+    phStreet: isEn ? "e.g. 1-19-11" : "例：1-19-11",
+    phBuilding: isEn
+      ? "e.g. Kotobuki Dogenzaka Bldg 8F"
+      : "例：寿道玄坂ビル 8F／株式会社〇〇 など",
+    phSubject: isEn ? "Subject of your inquiry" : "お問い合わせの件名",
+    phMessage: isEn
+      ? "Please share your current challenges or preferred schedule."
+      : "現状の課題やご希望のスケジュールなどをご記入ください。",
+    // ヒント・注意
+    postalHint: isEn ? "Enter digits only, no hyphen." : "ハイフンを入れずに入力してください",
+    postalAutoFill: isEn
+      ? "▼ When you enter the postal code, part of the address is filled automatically."
+      : "▼ 郵便番号を入力すると、住所の一部が自動的に入力されます",
+    postalHelpLink: isEn ? "Look up postal codes ↗" : "郵便番号がわからない方はこちら ↗",
+    streetHint: isEn
+      ? "* Please make sure the address includes the building/lot number."
+      : "※ ご注意：ご住所が番地まで入力されているか、ご確認ください。",
+    submitNote: isEn
+      ? "* Pressing “Review entries” shows a confirmation screen. Submission happens on that screen."
+      : "※「入力内容確認」を押すと、確認画面に内容が表示されます。送信は確認画面で行います。",
+    recruitNote: isEn
+      ? "For job applications, please use the dedicated form on the "
+      : "採用へのご応募は、",
+    recruitNoteLink: isEn ? "Careers page" : "採用情報ページ",
+    recruitNoteAfter: isEn
+      ? "."
+      : "の専用エントリーフォームをご利用ください。",
+    // ボタン
+    review: isEn ? "Review entries" : "入力内容確認",
+    sendDemo: isEn
+      ? "Send (demo: nothing is actually sent)"
+      : "送信する（デモ：実際には送信されません）",
+    edit: isEn ? "Edit" : "修正する",
+    sendAnother: isEn ? "Send another inquiry" : "続けて別のお問い合わせを送る",
+    // 確認画面
+    confirmIntro: isEn
+      ? "We will send the following content. To change any item, press “Edit”."
+      : "以下の内容で送信します。修正したい項目があれば「修正する」を押してください。",
+    confirmLabels: {
+      name: isEn ? "Name" : "お名前",
+      kana: isEn ? "Furigana" : "ふりがな",
+      email: isEn ? "Email" : "メールアドレス",
+      company: isEn ? "Company" : "御社名",
+      phone: isEn ? "Phone" : "電話番号",
+      address: isEn ? "Address" : "住所",
+      subject: isEn ? "Subject" : "件名",
+      message: isEn ? "Message" : "お問い合わせ内容",
+    },
+    notEntered: isEn ? "(not entered)" : "（未入力）",
+    // 完了画面
+    doneTitle: isEn ? "Submission complete (demo)" : "送信が完了しました（デモ）",
+    doneBody: isEn
+      ? "Nothing was actually sent. In production, connect this form to a backend such as Formspree or Server Actions."
+      : "実際には送信されていません。本番運用時は Formspree や Server Actions などのバックエンドへ接続してください。",
+    // エラーメッセージ
+    err: {
+      lastName: isEn ? "Please enter your family name." : "姓を入力してください。",
+      firstName: isEn ? "Please enter your given name." : "名を入力してください。",
+      lastNameKana: isEn
+        ? "Please enter your family name in hiragana."
+        : "せい(ひらがな)を入力してください。",
+      lastNameKanaInvalid: isEn
+        ? "Please use hiragana characters."
+        : "ひらがなで入力してください。",
+      firstNameKana: isEn
+        ? "Please enter your given name in hiragana."
+        : "めい(ひらがな)を入力してください。",
+      firstNameKanaInvalid: isEn
+        ? "Please use hiragana characters."
+        : "ひらがなで入力してください。",
+      email: isEn ? "Please enter your email address." : "メールアドレスを入力してください。",
+      emailInvalid: isEn
+        ? "Please enter a valid email address (e.g. you@example.com)."
+        : "メールアドレスの形式で入力してください。(例:you@example.com)",
+      phoneInvalid: isEn
+        ? "Please use digits, hyphens, etc. only."
+        : "電話番号は半角数字・ハイフン等で入力してください。",
+      postalCode: isEn ? "Please enter your postal code." : "郵便番号を入力してください。",
+      postalCodeInvalid: isEn
+        ? "Postal code must be 7 digits."
+        : "郵便番号は7桁の半角数字で入力してください。",
+      prefecture: isEn ? "Please enter the prefecture / state." : "都道府県を入力してください。",
+      city: isEn ? "Please enter the city / ward." : "市区町村を入力してください。",
+      streetAddress: isEn ? "Please enter the street address." : "字名・番地を入力してください。",
+      subject: isEn ? "Please enter a subject." : "件名を入力してください。",
+      message: isEn ? "Please enter your message." : "お問い合わせ内容を入力してください。",
+    },
+  };
+}
+
+const validate = (data: ContactData, lang: Lang): ContactErrors => {
   const e: ContactErrors = {};
-  if (!data.lastName.trim()) e.lastName = "姓を入力してください。";
-  if (!data.firstName.trim()) e.firstName = "名を入力してください。";
-  if (!data.lastNameKana.trim()) e.lastNameKana = "せい(ひらがな)を入力してください。";
-  else if (!HIRAGANA_RE.test(data.lastNameKana)) e.lastNameKana = "ひらがなで入力してください。";
-  if (!data.firstNameKana.trim()) e.firstNameKana = "めい(ひらがな)を入力してください。";
-  else if (!HIRAGANA_RE.test(data.firstNameKana)) e.firstNameKana = "ひらがなで入力してください。";
-  if (!data.email.trim()) e.email = "メールアドレスを入力してください。";
-  else if (!EMAIL_RE.test(data.email))
-    e.email = "メールアドレスの形式で入力してください。(例:you@example.com)";
-  if (data.phone && !PHONE_RE.test(data.phone))
-    e.phone = "電話番号は半角数字・ハイフン等で入力してください。";
+  const t = getTexts(lang).err;
+  if (!data.lastName.trim()) e.lastName = t.lastName;
+  if (!data.firstName.trim()) e.firstName = t.firstName;
+  // ふりがなは日本語表示時のみ必須チェック（英語表示時は対象フィールドが無いため）
+  if (lang === "ja") {
+    if (!data.lastNameKana.trim()) e.lastNameKana = t.lastNameKana;
+    else if (!HIRAGANA_RE.test(data.lastNameKana)) e.lastNameKana = t.lastNameKanaInvalid;
+    if (!data.firstNameKana.trim()) e.firstNameKana = t.firstNameKana;
+    else if (!HIRAGANA_RE.test(data.firstNameKana)) e.firstNameKana = t.firstNameKanaInvalid;
+  }
+  if (!data.email.trim()) e.email = t.email;
+  else if (!EMAIL_RE.test(data.email)) e.email = t.emailInvalid;
+  if (data.phone && !PHONE_RE.test(data.phone)) e.phone = t.phoneInvalid;
   const postalDigits = data.postalCode.replace(/[^0-9]/g, "");
-  if (!data.postalCode.trim()) e.postalCode = "郵便番号を入力してください。";
-  else if (postalDigits.length !== 7)
-    e.postalCode = "郵便番号は7桁の半角数字で入力してください。";
-  if (!data.prefecture.trim()) e.prefecture = "都道府県を入力してください。";
-  if (!data.city.trim()) e.city = "市区町村を入力してください。";
-  if (!data.streetAddress.trim()) e.streetAddress = "字名・番地を入力してください。";
-  if (!data.subject.trim()) e.subject = "件名を入力してください。";
-  if (!data.message.trim()) e.message = "お問い合わせ内容を入力してください。";
+  if (!data.postalCode.trim()) e.postalCode = t.postalCode;
+  else if (postalDigits.length !== 7) e.postalCode = t.postalCodeInvalid;
+  if (!data.prefecture.trim()) e.prefecture = t.prefecture;
+  if (!data.city.trim()) e.city = t.city;
+  if (!data.streetAddress.trim()) e.streetAddress = t.streetAddress;
+  if (!data.subject.trim()) e.subject = t.subject;
+  if (!data.message.trim()) e.message = t.message;
   return e;
 };
 
 export function ContactForm() {
+  const { lang } = useLanguage();
+  // 言語が変わった時だけ文言バンドルを再生成（毎レンダーでの不要な再構築を回避）
+  const texts = useMemo(() => getTexts(lang), [lang]);
   const [data, setData] = useState<ContactData>(initialData);
   const [step, setStep] = useState<"input" | "confirm" | "done">("input");
   const [errors, setErrors] = useState<ContactErrors>({});
@@ -130,7 +261,7 @@ export function ContactForm() {
 
   const handleInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const v = validate(data);
+    const v = validate(data, lang);
     if (Object.keys(v).length > 0) {
       setErrors(v);
       scrollToFormTop();
@@ -155,23 +286,30 @@ export function ContactForm() {
 
   // 確認画面：複数欄をまとめた表示
   const confirmRows: { label: string; value: string }[] = [
-    { label: "お名前", value: `${data.lastName} ${data.firstName}`.trim() },
-    { label: "ふりがな", value: `${data.lastNameKana} ${data.firstNameKana}`.trim() },
-    { label: "メールアドレス", value: data.email },
-    { label: "御社名", value: data.company },
-    { label: "電話番号", value: data.phone },
+    { label: texts.confirmLabels.name, value: `${data.lastName} ${data.firstName}`.trim() },
+    ...(lang === "ja"
+      ? [
+          {
+            label: texts.confirmLabels.kana,
+            value: `${data.lastNameKana} ${data.firstNameKana}`.trim(),
+          },
+        ]
+      : []),
+    { label: texts.confirmLabels.email, value: data.email },
+    { label: texts.confirmLabels.company, value: data.company },
+    { label: texts.confirmLabels.phone, value: data.phone },
     {
-      label: "住所",
+      label: texts.confirmLabels.address,
       value: [
-        data.postalCode ? `〒${data.postalCode}` : "",
+        data.postalCode ? (lang === "en" ? data.postalCode : `〒${data.postalCode}`) : "",
         `${data.prefecture}${data.city}${data.streetAddress}`,
         data.buildingName,
       ]
         .filter((s) => s && s.trim())
         .join("\n"),
     },
-    { label: "件名", value: data.subject },
-    { label: "お問い合わせ内容", value: data.message },
+    { label: texts.confirmLabels.subject, value: data.subject },
+    { label: texts.confirmLabels.message, value: data.message },
   ];
 
   return (
@@ -179,10 +317,8 @@ export function ContactForm() {
       {step === "done" ? (
         // 完了画面（デモ）
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
-          <h2 className="text-lg font-semibold text-slate-900">送信が完了しました（デモ）</h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            実際には送信されていません。本番運用時は Formspree や Server Actions などのバックエンドへ接続してください。
-          </p>
+          <h2 className="text-lg font-semibold text-slate-900">{texts.doneTitle}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{texts.doneBody}</p>
           <button
             type="button"
             onClick={() => {
@@ -193,15 +329,13 @@ export function ContactForm() {
             }}
             className="mt-6 inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
           >
-            続けて別のお問い合わせを送る
+            {texts.sendAnother}
           </button>
         </div>
       ) : step === "confirm" ? (
         // 確認画面
         <form onSubmit={handleSendSubmit} className="space-y-6">
-          <p className="text-sm text-muted-foreground">
-            以下の内容で送信します。修正したい項目があれば「修正する」を押してください。
-          </p>
+          <p className="text-sm text-muted-foreground">{texts.confirmIntro}</p>
           <dl className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
             {confirmRows.map(({ label, value }) => (
               <div
@@ -210,7 +344,7 @@ export function ContactForm() {
               >
                 <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
                 <dd className="whitespace-pre-wrap break-words text-sm text-slate-900">
-                  {value || <span className="text-muted-foreground">（未入力）</span>}
+                  {value || <span className="text-muted-foreground">{texts.notEntered}</span>}
                 </dd>
               </div>
             ))}
@@ -220,30 +354,30 @@ export function ContactForm() {
               type="submit"
               className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
-              送信する（デモ：実際には送信されません）
+              {texts.sendDemo}
             </button>
             <button
               type="button"
               onClick={backToEdit}
               className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-3 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
             >
-              修正する
+              {texts.edit}
             </button>
           </div>
         </form>
       ) : (
-        // 入力画面（3カラム行レイアウト）
+        // 入力画面
         <form
           onSubmit={handleInputSubmit}
           className="divide-y divide-border border-y border-border"
           noValidate
         >
           {/* お名前（姓・名） */}
-          <FieldRow badge="required" label="お名前">
+          <FieldRow badge="required" label={texts.name} lang={lang}>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <div className="flex items-start gap-2">
                 <label htmlFor="lastName" className="w-10 shrink-0 pt-2 text-sm text-slate-700">
-                  姓
+                  {texts.lastName}
                 </label>
                 <div className="flex-1">
                   <input
@@ -251,7 +385,7 @@ export function ContactForm() {
                     type="text"
                     autoComplete="family-name"
                     maxLength={30}
-                    placeholder="例：山田"
+                    placeholder={texts.phLastName}
                     value={data.lastName}
                     onChange={(e) => set("lastName", e.target.value)}
                     aria-invalid={!!errors.lastName}
@@ -263,7 +397,7 @@ export function ContactForm() {
               </div>
               <div className="flex items-start gap-2">
                 <label htmlFor="firstName" className="w-10 shrink-0 pt-2 text-sm text-slate-700">
-                  名
+                  {texts.firstName}
                 </label>
                 <div className="flex-1">
                   <input
@@ -271,7 +405,7 @@ export function ContactForm() {
                     type="text"
                     autoComplete="given-name"
                     maxLength={30}
-                    placeholder="例：太郎"
+                    placeholder={texts.phFirstName}
                     value={data.firstName}
                     onChange={(e) => set("firstName", e.target.value)}
                     aria-invalid={!!errors.firstName}
@@ -284,64 +418,66 @@ export function ContactForm() {
             </div>
           </FieldRow>
 
-          {/* ふりがな（せい・めい） */}
-          <FieldRow badge="required" label="ふりがな">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-              <div className="flex items-start gap-2">
-                <label
-                  htmlFor="lastNameKana"
-                  className="w-10 shrink-0 pt-2 text-sm text-slate-700"
-                >
-                  せい
-                </label>
-                <div className="flex-1">
-                  <input
-                    id="lastNameKana"
-                    type="text"
-                    maxLength={40}
-                    placeholder="例：やまだ"
-                    value={data.lastNameKana}
-                    onChange={(e) => set("lastNameKana", e.target.value)}
-                    aria-invalid={!!errors.lastNameKana}
-                    aria-describedby={errors.lastNameKana ? "lastNameKana-error" : undefined}
-                    className={inputClass(!!errors.lastNameKana)}
-                  />
-                  <FieldError id="lastNameKana-error" error={errors.lastNameKana} />
+          {/* ふりがな（日本語表示時のみ） */}
+          {lang === "ja" && (
+            <FieldRow badge="required" label={texts.kana} lang={lang}>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                <div className="flex items-start gap-2">
+                  <label
+                    htmlFor="lastNameKana"
+                    className="w-10 shrink-0 pt-2 text-sm text-slate-700"
+                  >
+                    {texts.lastNameKana}
+                  </label>
+                  <div className="flex-1">
+                    <input
+                      id="lastNameKana"
+                      type="text"
+                      maxLength={40}
+                      placeholder={texts.phLastNameKana}
+                      value={data.lastNameKana}
+                      onChange={(e) => set("lastNameKana", e.target.value)}
+                      aria-invalid={!!errors.lastNameKana}
+                      aria-describedby={errors.lastNameKana ? "lastNameKana-error" : undefined}
+                      className={inputClass(!!errors.lastNameKana)}
+                    />
+                    <FieldError id="lastNameKana-error" error={errors.lastNameKana} />
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <label
+                    htmlFor="firstNameKana"
+                    className="w-10 shrink-0 pt-2 text-sm text-slate-700"
+                  >
+                    {texts.firstNameKana}
+                  </label>
+                  <div className="flex-1">
+                    <input
+                      id="firstNameKana"
+                      type="text"
+                      maxLength={40}
+                      placeholder={texts.phFirstNameKana}
+                      value={data.firstNameKana}
+                      onChange={(e) => set("firstNameKana", e.target.value)}
+                      aria-invalid={!!errors.firstNameKana}
+                      aria-describedby={errors.firstNameKana ? "firstNameKana-error" : undefined}
+                      className={inputClass(!!errors.firstNameKana)}
+                    />
+                    <FieldError id="firstNameKana-error" error={errors.firstNameKana} />
+                  </div>
                 </div>
               </div>
-              <div className="flex items-start gap-2">
-                <label
-                  htmlFor="firstNameKana"
-                  className="w-10 shrink-0 pt-2 text-sm text-slate-700"
-                >
-                  めい
-                </label>
-                <div className="flex-1">
-                  <input
-                    id="firstNameKana"
-                    type="text"
-                    maxLength={40}
-                    placeholder="例：たろう"
-                    value={data.firstNameKana}
-                    onChange={(e) => set("firstNameKana", e.target.value)}
-                    aria-invalid={!!errors.firstNameKana}
-                    aria-describedby={errors.firstNameKana ? "firstNameKana-error" : undefined}
-                    className={inputClass(!!errors.firstNameKana)}
-                  />
-                  <FieldError id="firstNameKana-error" error={errors.firstNameKana} />
-                </div>
-              </div>
-            </div>
-          </FieldRow>
+            </FieldRow>
+          )}
 
           {/* メールアドレス */}
-          <FieldRow badge="required" label="メールアドレス" htmlFor="email">
+          <FieldRow badge="required" label={texts.email} htmlFor="email" lang={lang}>
             <input
               id="email"
               type="email"
               autoComplete="email"
               maxLength={254}
-              placeholder="you@example.com"
+              placeholder={texts.phEmail}
               value={data.email}
               onChange={(e) => set("email", e.target.value)}
               aria-invalid={!!errors.email}
@@ -351,28 +487,28 @@ export function ContactForm() {
             <FieldError id="email-error" error={errors.email} />
           </FieldRow>
 
-          {/* 御社名 */}
-          <FieldRow badge="optional" label="御社名" htmlFor="company">
+          {/* 会社名 */}
+          <FieldRow badge="optional" label={texts.company} htmlFor="company" lang={lang}>
             <input
               id="company"
               type="text"
               autoComplete="organization"
               maxLength={100}
-              placeholder="株式会社〇〇"
+              placeholder={texts.phCompany}
               value={data.company}
               onChange={(e) => set("company", e.target.value)}
               className={inputClass(false)}
             />
           </FieldRow>
 
-          {/* 電話番号（住所のように1行で表示） */}
-          <FieldRow badge="optional" label="電話番号" htmlFor="phone">
+          {/* 電話番号 */}
+          <FieldRow badge="optional" label={texts.phone} htmlFor="phone" lang={lang}>
             <input
               id="phone"
               type="tel"
               autoComplete="tel"
               maxLength={20}
-              placeholder="090-1234-5678"
+              placeholder={texts.phPhone}
               value={data.phone}
               onChange={(e) => set("phone", e.target.value)}
               aria-invalid={!!errors.phone}
@@ -382,8 +518,8 @@ export function ContactForm() {
             <FieldError id="phone-error" error={errors.phone} />
           </FieldRow>
 
-          {/* 郵便番号（7桁で住所自動入力） */}
-          <FieldRow badge="required" label="郵便番号" htmlFor="postalCode">
+          {/* 郵便番号 */}
+          <FieldRow badge="required" label={texts.postalCode} htmlFor="postalCode" lang={lang}>
             <div className="flex flex-wrap items-center gap-3">
               <input
                 id="postalCode"
@@ -391,7 +527,7 @@ export function ContactForm() {
                 autoComplete="postal-code"
                 inputMode="numeric"
                 maxLength={8}
-                placeholder="例：1500043"
+                placeholder={texts.phPostal}
                 value={data.postalCode}
                 onChange={(e) => onPostalCodeChange(e.target.value)}
                 aria-invalid={!!errors.postalCode}
@@ -404,26 +540,24 @@ export function ContactForm() {
                 rel="noopener noreferrer"
                 className="text-xs text-slate-700 underline underline-offset-2 hover:text-slate-900"
               >
-                郵便番号がわからない方はこちら ↗
+                {texts.postalHelpLink}
               </a>
             </div>
             <p id="postalCode-hint" className="mt-1 text-xs text-muted-foreground">
-              ハイフンを入れずに入力してください
+              {texts.postalHint}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              ▼ 郵便番号を入力すると、住所の一部が自動的に入力されます
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{texts.postalAutoFill}</p>
             <FieldError id="postalCode-error" error={errors.postalCode} />
           </FieldRow>
 
-          {/* 都道府県（自動入力／手修正可） */}
-          <FieldRow badge="required" label="都道府県" htmlFor="prefecture">
+          {/* 都道府県 */}
+          <FieldRow badge="required" label={texts.prefecture} htmlFor="prefecture" lang={lang}>
             <input
               id="prefecture"
               type="text"
               autoComplete="address-level1"
               maxLength={20}
-              placeholder="例：東京都"
+              placeholder={texts.phPrefecture}
               value={data.prefecture}
               onChange={(e) => set("prefecture", e.target.value)}
               aria-invalid={!!errors.prefecture}
@@ -433,14 +567,14 @@ export function ContactForm() {
             <FieldError id="prefecture-error" error={errors.prefecture} />
           </FieldRow>
 
-          {/* 市区町村（自動入力／手修正可） */}
-          <FieldRow badge="required" label="市区町村" htmlFor="city">
+          {/* 市区町村 */}
+          <FieldRow badge="required" label={texts.city} htmlFor="city" lang={lang}>
             <input
               id="city"
               type="text"
               autoComplete="address-level2"
               maxLength={50}
-              placeholder="例：渋谷区道玄坂"
+              placeholder={texts.phCity}
               value={data.city}
               onChange={(e) => set("city", e.target.value)}
               aria-invalid={!!errors.city}
@@ -451,13 +585,18 @@ export function ContactForm() {
           </FieldRow>
 
           {/* 字名・番地 */}
-          <FieldRow badge="required" label="字名・番地" htmlFor="streetAddress">
+          <FieldRow
+            badge="required"
+            label={texts.streetAddress}
+            htmlFor="streetAddress"
+            lang={lang}
+          >
             <input
               id="streetAddress"
               type="text"
               autoComplete="street-address"
               maxLength={100}
-              placeholder="例：1-19-11"
+              placeholder={texts.phStreet}
               value={data.streetAddress}
               onChange={(e) => set("streetAddress", e.target.value)}
               aria-invalid={!!errors.streetAddress}
@@ -465,18 +604,23 @@ export function ContactForm() {
               className={inputClass(!!errors.streetAddress)}
             />
             <p id="streetAddress-hint" className="mt-1 text-xs text-muted-foreground">
-              ※ ご注意：ご住所が番地まで入力されているか、ご確認ください。
+              {texts.streetHint}
             </p>
             <FieldError id="streetAddress-error" error={errors.streetAddress} />
           </FieldRow>
 
-          {/* 建物名・会社名（任意） */}
-          <FieldRow badge="optional" label="建物名・会社名" htmlFor="buildingName">
+          {/* 建物名・会社名 */}
+          <FieldRow
+            badge="optional"
+            label={texts.buildingName}
+            htmlFor="buildingName"
+            lang={lang}
+          >
             <input
               id="buildingName"
               type="text"
               maxLength={100}
-              placeholder="例：寿道玄坂ビル 8F／株式会社〇〇 など"
+              placeholder={texts.phBuilding}
               value={data.buildingName}
               onChange={(e) => set("buildingName", e.target.value)}
               className={inputClass(false)}
@@ -484,12 +628,12 @@ export function ContactForm() {
           </FieldRow>
 
           {/* 件名 */}
-          <FieldRow badge="required" label="件名" htmlFor="subject">
+          <FieldRow badge="required" label={texts.subject} htmlFor="subject" lang={lang}>
             <input
               id="subject"
               type="text"
               maxLength={120}
-              placeholder="お問い合わせの件名"
+              placeholder={texts.phSubject}
               value={data.subject}
               onChange={(e) => set("subject", e.target.value)}
               aria-invalid={!!errors.subject}
@@ -500,12 +644,12 @@ export function ContactForm() {
           </FieldRow>
 
           {/* お問い合わせ内容 */}
-          <FieldRow badge="required" label="お問い合わせ内容" htmlFor="message">
+          <FieldRow badge="required" label={texts.message} htmlFor="message" lang={lang}>
             <textarea
               id="message"
               rows={7}
               maxLength={2000}
-              placeholder="現状の課題やご希望のスケジュールなどをご記入ください。"
+              placeholder={texts.phMessage}
               value={data.message}
               onChange={(e) => set("message", e.target.value)}
               aria-invalid={!!errors.message}
@@ -517,24 +661,22 @@ export function ContactForm() {
 
           {/* 注意書きと送信ボタン */}
           <div className="space-y-5 pt-6">
+            <p className="text-xs text-muted-foreground">{texts.submitNote}</p>
             <p className="text-xs text-muted-foreground">
-              ※「入力内容確認」を押すと、確認画面に内容が表示されます。送信は確認画面で行います。
-            </p>
-            <p className="text-xs text-muted-foreground">
-              採用へのご応募は、
+              {texts.recruitNote}
               <Link
                 href="/recruit"
                 className="font-medium text-slate-900 underline underline-offset-2 hover:opacity-70"
               >
-                採用情報ページ
+                {texts.recruitNoteLink}
               </Link>
-              の専用エントリーフォームをご利用ください。
+              {texts.recruitNoteAfter}
             </p>
             <button
               type="submit"
               className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
-              入力内容確認
+              {texts.review}
             </button>
           </div>
         </form>

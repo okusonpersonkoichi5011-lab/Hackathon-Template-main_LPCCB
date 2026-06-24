@@ -1,85 +1,161 @@
 import type { NextConfig } from "next";
 
 /**
+ * ========================================
  * セキュリティ用のレスポンスヘッダ
- * - 静的に近いマーケサイト想定の "ハッカソン用デフォルト"
- * - もし外部の埋め込み（YouTube, X, など）を追加するときは
- *   その都度ヘッダを緩める必要があります（特に CSP / X-Frame-Options）。
+ * ----------------------------------------
+ * 88 項目の脆弱性チェックリスト（OWASP 系）への対応として、
+ * 本サイトに該当する以下の項目をヘッダで防御しています。
+ *  - クリックジャッキング（#73）
+ *  - MIME スニッフィング由来の XSS（#16-18 補強）
+ *  - Referer 漏えい
+ *  - 不要なブラウザ機能の禁止
+ *  - HTTPS 強制（HSTS, #58）
+ *  - フレームワーク特定の防止（#21）
+ *  - CSP による XSS / クリックジャッキング多層防御（#88）
+ *  - 非暗号化通信の自動アップグレード（#72）
+ * ========================================
+ *
+ * ★ OneDrive 配下で発生する `.next` 同期衝突については、
+ *    `scripts/fix-onedrive.mjs` が `.next` を AppData への
+ *    Junction（NTFS シンボリックリンク）として作成することで回避します。
+ *    Next.js の `distDir` はプロジェクト外を指せないため、distDir 設定では対処できません。
  */
+
+const isDev = process.env.NODE_ENV !== "production";
+
+/**
+ * Content-Security-Policy
+ * ★ 開発環境（npm run dev）と本番で挙動が異なる点に注意：
+ *
+ *  - 開発時は Next.js の HMR（Hot Module Replacement）が eval() を使うため
+ *    `'unsafe-eval'` を許可する必要があります。
+ *    また dev server は ws://localhost:PORT で WebSocket 接続するので
+ *    `connect-src` に `ws:` を追加します。
+ *
+ *  - 本番ビルドでは eval も WebSocket も使われないので、より厳格な CSP を適用します。
+ *
+ *  - frame-ancestors 'none' は両方で有効（クリックジャッキング防止）
+ *  - HSTS は本番のみで意味があるので、開発時は無効にして
+ *    localhost が常時 https に強制アップグレードされる事故を防ぎます。
+ */
+function buildCSP(): string {
+  const scriptSrc = isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'";
+
+  const connectSrc = isDev
+    ? "connect-src 'self' ws: wss: https://zipcloud.ibsnet.co.jp"
+    : "connect-src 'self' https://zipcloud.ibsnet.co.jp";
+
+  const directives = [
+    "default-src 'self'",
+    scriptSrc,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    connectSrc,
+    "frame-src 'self' https://www.google.com https://maps.google.com",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ];
+  // upgrade-insecure-requests は本番のみ
+  // （開発 http://localhost を https に強制すると即時破綻するため）
+  if (!isDev) {
+    directives.push("upgrade-insecure-requests");
+  }
+  return directives.join("; ");
+}
+
 const securityHeaders = [
-  // 他サイトに iframe で埋め込まれることを禁止（クリックジャッキング対策）
+  // CSP（#88）：XSS / クリックジャッキングの多層防御
+  { key: "Content-Security-Policy", value: buildCSP() },
+  // クリックジャッキング対策（#73）
   { key: "X-Frame-Options", value: "DENY" },
-  // MIME タイプを推測させない（content sniffing 対策）
+  // MIME スニッフィング防止
   { key: "X-Content-Type-Options", value: "nosniff" },
-  // 外部サイトへ遷移する際の Referrer を最小限に
+  // 外部サイト遷移時の Referer を最小限に
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   // ブラウザ機能（カメラ・マイク等）を一切要求しないことを明示
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+    value: "camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=(), usb=()",
   },
-  // HTTPS を強制（HSTS）。Vercel は既定で HTTPS、本番想定のみ有効化。
-  // ローカル開発（http://localhost）には付与しません。
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
-  },
-  // 推奨：旧 XSS フィルタは無効化が推奨（IE 旧版向け）
+  // 旧 XSS フィルタは無効化が推奨（IE 旧版向け）
   { key: "X-XSS-Protection", value: "0" },
+  // クロスオリジン分離（XS-Leaks / Spectre 系攻撃の緩和）
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+];
+
+// 本番のみ付与するヘッダ群（HSTS / CORP）
+const productionOnlyHeaders = isDev
+  ? []
+  : [
+      {
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
+      },
+      // CORP は dev で next/image など同一オリジンでも一部の最適化で
+      // クロスオリジン扱いになる場合があるため、本番のみ厳格化
+      { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+    ];
+
+const allSecurityHeaders = [...securityHeaders, ...productionOnlyHeaders];
+
+/**
+ * /api/* 配下用の専用ヘッダ。
+ * - キャッシュさせない（#79：機微情報のキャッシュ防止）
+ * - 検索エンジンへのインデックスを完全に禁止
+ */
+const apiSecurityHeaders = [
+  { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, max-age=0" },
+  { key: "Pragma", value: "no-cache" },
+  { key: "X-Robots-Tag", value: "noindex, nofollow, nosnippet, noarchive" },
 ];
 
 const nextConfig: NextConfig = {
-  /* Vercel へのデプロイに追加設定は基本不要です */
-
   async headers() {
     return [
       {
-        // すべてのページに上記ヘッダを適用
+        // 全ページに共通セキュリティヘッダ
         source: "/:path*",
-        headers: securityHeaders,
+        headers: allSecurityHeaders,
+      },
+      {
+        // API ルートには追加でキャッシュ禁止・noindex
+        source: "/api/:path*",
+        headers: [...allSecurityHeaders, ...apiSecurityHeaders],
       },
     ];
   },
 
-  // 環境情報を返すレスポンスヘッダ "X-Powered-By: Next.js" を非表示にする
-  // （フレームワーク特定の手掛かりを与えない）
+  // X-Powered-By: Next.js を出力しない（#21, #78 バージョン情報の秘匿）
   poweredByHeader: false,
 
-  // ===== 使用ライブラリ／フレームワークのバージョン情報をクライアントに露出させない設定 =====
-  //
-  // ▼ 本番ビルドではブラウザ向けソースマップを生成しない
-  //   ソースマップを公開すると、元のファイル構成・依存ライブラリ名・モジュール内部までが
-  //   クライアントから参照できてしまい、バージョン特定（→既知脆弱性の悪用）に直結します。
-  //   デバッグが必要な時だけ一時的に true にし、すぐ false に戻す運用を推奨。
+  // 本番ブラウザ向けソースマップを出さない（依存関係・コード構造の漏えい防止）
   productionBrowserSourceMaps: false,
 
-  // ▼ 本番ビルド時に console.* 呼び出しを SWC で削除（error だけ残す）
-  //   開発中の console.log にバージョン文字列や内部情報が紛れ込んだまま
-  //   本番に出てしまう事故を防ぎます。error は運用監視に有用なので除外。
+  // 本番ビルドで console.* を SWC で削除（error だけ残す）
   compiler: {
     removeConsole:
       process.env.NODE_ENV === "production" ? { exclude: ["error"] } : false,
   },
 
-  // ===== next/image の最適化設定 =====
-  //
-  // 「画像が時々読み込まれない」事象の対策:
-  //  - formats：AVIF → WebP の順に試し、軽い形式で配信（フォールバックで JPEG/PNG も使われる）
-  //  - minimumCacheTTL：最適化済み画像を長めにキャッシュ（30日）→
-  //    Vercel の Image Optimization の月次変換回数を節約し、初回以降を高速化
-  //  - dangerouslyAllowSVG：将来 SVG を使うとき用（現状未使用）
-  //  - contentDispositionType：ダウンロード強要を避け inline 表示
+  // next/image：AVIF / WebP 配信、30日キャッシュ、inline 表示
+  // dangerouslyAllowSVG は意図的に false（SVG XSS の防止）
   images: {
     formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 日
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     contentDispositionType: "inline",
+    dangerouslyAllowSVG: false,
   },
 
-  // 補足：
-  //  - "Server: Vercel" 等のホスティング由来のヘッダはアプリ側から完全には削除できません
-  //    （Vercel / CloudFront / Nginx などの最前面が付与するため）。
-  //  - generator メタタグ（<meta name="generator">）は Next.js は付けないので追加対策不要です。
-  //  - React.version は実行時オブジェクトから参照可能ですが、これはランタイム必須の挙動です。
+  // 本サイト固有の補足：
+  //  - Vercel / CloudFront / Nginx 等が付与する "Server" ヘッダはアプリ側から削除不可
+  //  - <meta name="generator"> は Next.js が付けないので追加対策不要
+  //  - HTTP/2 リクエストスマグリング（#28）は Vercel フロントエンドの責務
 };
 
 export default nextConfig;

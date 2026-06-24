@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { siteConfig } from "@/lib/siteConfig";
 import "./globals.css";
 
@@ -13,9 +14,6 @@ const inter = Inter({
 
 /**
  * サイト全体（全ページ共通）の SEO メタデータ。
- * - metadataBase：OGP 画像や canonical を「絶対 URL」に解決するための基準。
- *   siteConfig.siteUrl を変えれば全ページに反映されます。
- * - 各ページ（/service など）の metadata はこの設定を継承し、title だけ上書きされます。
  */
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.siteUrl),
@@ -40,7 +38,6 @@ export const metadata: Metadata = {
   authors: [{ name: siteConfig.siteName }],
   creator: siteConfig.siteName,
   publisher: siteConfig.siteName,
-  // トップページの正規 URL。各ページは自身の metadata で個別に上書きします。
   alternates: {
     canonical: "/",
   },
@@ -51,14 +48,12 @@ export const metadata: Metadata = {
     siteName: siteConfig.siteName,
     title: `${siteConfig.siteName}｜システム・インフラ・ヘルプデスクのアウトソーシング`,
     description: siteConfig.shortDescription,
-    // OGP 画像を用意したら app/opengraph-image.(png|jpg) を置くだけで自動採用されます。
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.siteName,
     description: siteConfig.shortDescription,
   },
-  // 検索エンジンにインデックス（掲載）を許可。公開前の非公開運用時は index:false に。
   robots: {
     index: true,
     follow: true,
@@ -75,11 +70,7 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * 構造化データ（JSON-LD / schema.org Organization）。
- * Google などに「会社名・所在地・電話・公式 SNS」を機械可読で伝え、
- * ナレッジパネルやリッチリザルトの対象になりやすくします。
- */
+/** 構造化データ（JSON-LD / schema.org Organization） */
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -96,10 +87,7 @@ const organizationJsonLd = {
     streetAddress: "道玄坂1-19-11 寿道玄坂ビル8F",
     addressCountry: "JP",
   },
-  sameAs: [
-    siteConfig.externalLinks.officialSite,
-    siteConfig.externalLinks.instagram,
-  ],
+  sameAs: [siteConfig.externalLinks.officialSite, siteConfig.externalLinks.instagram],
 };
 
 export default function RootLayout({
@@ -109,16 +97,14 @@ export default function RootLayout({
 }>) {
   return (
     // suppressHydrationWarning：
-    //   下の <head> 内インラインスクリプトが React の hydrate より先に走り
-    //   <html> から 'no-js' クラスを取り除くため、サーバ側HTMLと差分が出る。
-    //   この差分は「意図的」なものなので React の警告を抑止する。
+    //   インラインスクリプトが hydrate 前に走り <html> から no-js を外す。
+    //   LanguageProvider も <html lang> を実際の言語に同期させるため、ここで warning を抑制。
     <html lang="ja" className={`no-js ${inter.variable}`} suppressHydrationWarning>
       <head>
-        {/*
-          JS が動いた瞬間に <html> から 'no-js' を外す。
-          これにより、JS が無効／読み込み失敗の環境では Reveal の opacity:0 が解除され
-          画像・テキストが必ず表示されるフォールバックとして機能する。
-        */}
+        {/* 外部 API への DNS 早期解決（フォーム郵便番号検索の zipcloud / Google マップ） */}
+        <link rel="dns-prefetch" href="https://zipcloud.ibsnet.co.jp" />
+        <link rel="dns-prefetch" href="https://maps.google.com" />
+        <link rel="preconnect" href="https://zipcloud.ibsnet.co.jp" crossOrigin="anonymous" />
         <script
           dangerouslySetInnerHTML={{
             __html: `document.documentElement.classList.remove('no-js');`,
@@ -126,14 +112,16 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-screen flex-col font-sans">
-        {/* 構造化データ（会社情報）。検索エンジン向けで、画面には表示されません。 */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        {/* LanguageProvider：サイト全体の日英切替状態を保持。 */}
+        <LanguageProvider>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   );
