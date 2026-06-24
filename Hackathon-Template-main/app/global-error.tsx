@@ -2,6 +2,10 @@
 
 /**
  * ルート layout 自体が失敗したとき用（html / body をここで描画する必要があります）
+ *
+ * セキュリティ観点（#47, #48）:
+ * - 本番では error.message・error.stack を一切表示しない
+ * - digest（実装情報を含まないハッシュ）のみ表示
  */
 export default function GlobalError({
   error,
@@ -10,13 +14,23 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const isDev = process.env.NODE_ENV === "development";
   return (
     <html lang="ja">
       <body style={{ fontFamily: "system-ui, sans-serif", padding: "2rem", textAlign: "center" }}>
         <h1 style={{ fontSize: "1.125rem", fontWeight: 600 }}>致命的なエラーが発生しました</h1>
         <p style={{ marginTop: "0.75rem", color: "#64748b", fontSize: "0.875rem" }}>
-          {process.env.NODE_ENV === "development" ? error.message : "ページを再読み込みしてください。"}
+          ページを再読み込みしてください。
         </p>
+        {isDev ? (
+          <pre style={{ marginTop: "1rem", color: "#dc2626", fontSize: "0.75rem", textAlign: "left", maxWidth: "32rem", marginInline: "auto" }}>
+            {error.message}
+          </pre>
+        ) : error.digest ? (
+          <p style={{ marginTop: "1rem", color: "#64748b", fontSize: "0.75rem" }}>
+            エラー ID: <code>{error.digest}</code>
+          </p>
+        ) : null}
         <button
           type="button"
           onClick={() => reset()}

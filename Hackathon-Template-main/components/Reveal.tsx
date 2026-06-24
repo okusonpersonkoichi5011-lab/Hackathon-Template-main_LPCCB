@@ -9,10 +9,9 @@ type RevealProps = {
   variant?: "fade-up" | "fade-up-strong" | "fade" | "scale" | "slide-right" | "slide-left";
   /**
    * 出現を少し遅らせたいとき（ミリ秒、5 段階：100/200/300/400/500）
-   * - スタッガー（カードを順番に出すなど）に便利
    */
   delay?: 100 | 200 | 300 | 400 | 500;
-  /** ラッパーに追加で当てたい Tailwind クラス（レイアウト調整用） */
+  /** ラッパーに追加で当てたい Tailwind クラス */
   className?: string;
   /**
    * ビューポートに入る前にトリガーするマージン（px）
@@ -22,7 +21,13 @@ type RevealProps = {
 };
 
 /**
- * スクロールで要素をフェードインさせるラッパー（NSD 風）
+ * スクロールで要素をフェードインさせるラッパー（NSD 風・最適化版）
+ *
+ * パフォーマンス最適化：
+ * - **共有 IntersectionObserver**：従来は Reveal ごとに 1 つの Observer を作成していたが、
+ *   モジュール内で 1 つの Observer に複数要素を observe させる方式に変更。
+ *   1ページに 20 個 Reveal があっても Observer は 1 個で済み、メモリ・CPU を節約。
+ * - **安全網タイマー短縮**：3 秒 → 1.5 秒。表示までの最大待ちを半減。
  *
  * 使い方：
  *   <Reveal>
@@ -35,6 +40,34 @@ type RevealProps = {
  * - `prefers-reduced-motion` が有効な環境では globals.css 側で
  *   アニメーションが無効化され、最初から表示されます。
  */
+
+// ---- モジュールスコープで Observer を共有 ----
+// 同じ rootMargin であれば 1 つの Observer を再利用。要素ごとに on-intersect コールバックを保持。
+const callbacks = new WeakMap<Element, () => void>();
+let sharedObserver: IntersectionObserver | null = null;
+let sharedObserverRootMargin = "";
+
+function getSharedObserver(rootMargin: string): IntersectionObserver | null {
+  if (typeof IntersectionObserver === "undefined") return null;
+  // rootMargin が異なる場合は別 Observer に分岐するが、ほぼ全 Reveal が同じ既定値を使う想定
+  if (sharedObserver && sharedObserverRootMargin === rootMargin) return sharedObserver;
+  sharedObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          const cb = callbacks.get(entry.target);
+          if (cb) cb();
+          sharedObserver?.unobserve(entry.target);
+          callbacks.delete(entry.target);
+        }
+      }
+    },
+    { threshold: 0.05, rootMargin },
+  );
+  sharedObserverRootMargin = rootMargin;
+  return sharedObserver;
+}
+
 export function Reveal({
   children,
   variant = "fade-up",
@@ -46,39 +79,32 @@ export function Reveal({
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
-    // SSR 時は実行されない。クライアントでマウントされたあとに監視を開始。
     const node = ref.current;
     if (!node) return;
 
-    // IntersectionObserver 非対応の古いブラウザでは即表示する（フォールバック）
-    if (typeof IntersectionObserver === "undefined") {
+    const observer = getSharedObserver(rootMargin);
+    if (!observer) {
+      // 非対応環境では即時表示
       setInView(true);
       return;
     }
 
-    // 安全網：何らかの理由で IntersectionObserver が発火しない場合でも
-    // 3秒経過したら必ず表示する（画像が「読み込まれない」ように見える事象の防止）
+    // 安全網：1.5 秒経過したら必ず表示（IntersectionObserver が発火しないレアケースの保険）
     const safetyTimer = window.setTimeout(() => {
       setInView(true);
-    }, 3000);
+      observer.unobserve(node);
+      callbacks.delete(node);
+    }, 1500);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setInView(true);
-            observer.disconnect(); // 一度出したら以降は監視しない
-            window.clearTimeout(safetyTimer);
-            break;
-          }
-        }
-      },
-      { threshold: 0.05, rootMargin },
-    );
-
+    callbacks.set(node, () => {
+      setInView(true);
+      window.clearTimeout(safetyTimer);
+    });
     observer.observe(node);
+
     return () => {
-      observer.disconnect();
+      observer.unobserve(node);
+      callbacks.delete(node);
       window.clearTimeout(safetyTimer);
     };
   }, [rootMargin]);

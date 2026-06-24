@@ -4,32 +4,32 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { siteConfig } from "@/lib/siteConfig";
 
 /**
  * 全ページ共通のヘッダー
- * - PC：ナビを横並びで表示
+ * - PC：ナビを横並びで表示 + 右端に JP/EN 言語切替ボタン
  * - スマホ：ハンバーガーボタン → 右からスライドインするドロワー＋背面オーバーレイ
  *
- * ナビ項目は lib/siteConfig.ts の nav を編集してください。
- *
- * モバイルメニューの挙動：
- *  - ボタン押下で open=true、ドロワーが右からスライドイン
- *  - 背景は半透明＋ブラーで暗くなり、ドロワー外をクリックで閉じる
- *  - ESC キーでも閉じる
- *  - ページ遷移したら自動で閉じる
- *  - 開いている間は body のスクロールを止める
+ * 言語切替（JP/EN）はサイト全体に即座に反映されます（useLanguage 経由）。
+ * ナビ項目のラベルは lib/i18n/translations.ts の "nav.*" を参照。
  */
+
+// ナビ定義はモジュール定数（毎レンダーでの配列再生成を防止）
+const NAV_ITEMS = [
+  { href: "/", labelKey: "nav.home" },
+  { href: "/company", labelKey: "nav.company" },
+  { href: "/recruit", labelKey: "nav.recruit" },
+  { href: "/contact", labelKey: "nav.contact" },
+] as const;
+
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
-  /**
-   * 現在のページかどうかを判定するヘルパー
-   * - "/" は完全一致のみ（前方一致だと全ページがマッチしてしまうため）
-   * - その他のページは前方一致（例：/recruit と /recruit/foo の両方を active 扱い）
-   * - href にハッシュ（例：/recruit#entry）が付いていてもパス部分のみで比較
-   */
   const isActive = (href: string): boolean => {
     const path = href.split("#")[0];
     if (path === "/") return pathname === "/";
@@ -63,7 +63,8 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
+      {/* スクロール時の GPU 負荷を避けるため backdrop-blur を外し、不透明背景に変更 */}
+      <header className="sticky top-0 z-40 border-b border-border bg-surface">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           {/* ロゴ＋社名 */}
           <Link href="/" className="group flex items-center gap-3">
@@ -85,59 +86,66 @@ export function Header() {
             </span>
           </Link>
 
-          {/* PC：横並びナビ */}
-          <nav
-            className="hidden flex-wrap items-center justify-end gap-0.5 sm:flex sm:max-w-[28rem] md:max-w-none lg:gap-1"
-            aria-label="メインナビゲーション"
-          >
-            {siteConfig.nav.map((item) => {
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`relative rounded-md px-2 py-2 text-sm transition hover:bg-muted hover:text-slate-900 md:px-3 md:text-base ${
-                    active
-                      ? "font-semibold text-slate-900 after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-primary md:after:left-3 md:after:right-3"
-                      : "text-slate-700"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* スマホ：ハンバーガーボタン（押すとドロワーが開く） */}
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-expanded={open}
-            aria-controls="mobile-menu"
-            aria-label="メニューを開く"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-slate-800 transition hover:bg-muted sm:hidden"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-5 w-5"
-              aria-hidden
+          {/* PC：横並びナビ + 右端に JP/EN 切替 */}
+          <div className="hidden items-center gap-3 sm:flex">
+            <nav
+              className="flex flex-wrap items-center justify-end gap-0.5 sm:max-w-[28rem] md:max-w-none lg:gap-1"
+              aria-label={t("header.siteNameAria")}
             >
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
+              {NAV_ITEMS.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`relative rounded-md px-2 py-2 text-sm transition hover:bg-muted hover:text-slate-900 md:px-3 md:text-base ${
+                      active
+                        ? "font-semibold text-slate-900 after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-primary md:after:left-3 md:after:right-3"
+                        : "text-slate-700"
+                    }`}
+                  >
+                    {t(item.labelKey)}
+                  </Link>
+                );
+              })}
+            </nav>
+            {/* JP / EN 言語切替（PC用） */}
+            <LanguageSwitcher />
+          </div>
+
+          {/* スマホ：JP/EN + ハンバーガーボタン */}
+          <div className="flex items-center gap-2 sm:hidden">
+            <LanguageSwitcher />
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              aria-label={t("header.openMenu")}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-slate-800 transition hover:bg-muted"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+                aria-hidden
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* スマホ用：背面オーバーレイ（暗くする・クリックで閉じる）。PCでは非表示。 */}
+      {/* スマホ用：背面オーバーレイ */}
       <div
         onClick={() => setOpen(false)}
         aria-hidden
@@ -149,19 +157,18 @@ export function Header() {
       {/* スマホ用：右からスライドインするドロワー */}
       <aside
         id="mobile-menu"
-        aria-label="モバイルメニュー"
+        aria-label={t("header.menuTitle")}
         aria-hidden={!open}
         className={`fixed inset-y-0 right-0 z-50 flex w-72 max-w-[80vw] flex-col bg-surface shadow-2xl transition-transform duration-300 ease-out sm:hidden ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* ドロワーのヘッダー：ラベル＋閉じるボタン */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <span className="text-sm font-semibold text-slate-900">メニュー</span>
+          <span className="text-sm font-semibold text-slate-900">{t("header.menuTitle")}</span>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            aria-label="メニューを閉じる"
+            aria-label={t("header.closeMenu")}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-slate-800 transition hover:bg-muted"
           >
             <svg
@@ -181,23 +188,20 @@ export function Header() {
           </button>
         </div>
 
-        {/* ドロワー本体のナビ */}
-        <nav className="flex-1 overflow-y-auto p-3" aria-label="モバイルナビゲーション">
-          {siteConfig.nav.map((item) => {
+        <nav className="flex-1 overflow-y-auto p-3" aria-label={t("header.mobileNavAria")}>
+          {NAV_ITEMS.map((item) => {
             const active = isActive(item.href);
             return (
               <Link
-                key={item.label}
+                key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 onClick={() => setOpen(false)}
                 className={`block rounded-md px-3 py-3 text-base transition hover:bg-muted hover:text-slate-900 ${
-                  active
-                    ? "bg-muted font-semibold text-slate-900"
-                    : "text-slate-700"
+                  active ? "bg-muted font-semibold text-slate-900" : "text-slate-700"
                 }`}
               >
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}

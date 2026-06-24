@@ -1,28 +1,34 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { FeatureCard } from "@/components/FeatureCard";
 import { Reveal } from "@/components/Reveal";
 import { SectionTitle } from "@/components/SectionTitle";
 import { homeFeatures } from "@/lib/data/homeFeatures";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 /**
- * TOP ページ
- * キャッチや導線の文言は、株式会社ライトパス公式サイトのトップに掲載のメッセージに沿っています。
- * https://light-path.co.jp/
+ * TOP ページ（日英対応）
+ * - 文言は lib/i18n/translations.ts の "home.*" から取得
+ * - homeFeatures の各カードも Localized<string> なので pick() で言語別に取り出す
  *
- * レイアウトはお客様提供の見本に準拠：
- * - ヒーロー＋ライトパスの特徴（歯車背景 PageTop_bg.png を共通の背景として敷く）
- * - サービス案内への導線
- * - 採用情報・お問い合わせ（ボタン3つ）
- * - 写真バンド（employee1〜3.png）
+ * レイアウトは見本に準拠：
+ * - ヒーロー＋ライトパスの特徴
+ * - 採用情報・お問い合わせへの導線
+ * - 写真バンド（マーキー）
  */
 export default function HomePage() {
+  const { t, pick } = useLanguage();
+
+  // alt テキストも辞書から取得（日英で適切な説明文に切替）
   const bandPhotos = [
-    { src: "/images/employee1.jpg", alt: "打ち合わせの様子" },
-    { src: "/images/employee2.jpg", alt: "社員が移動する様子" },
-    { src: "/images/employee3.jpg", alt: "作業に取り組む様子" },
+    { src: "/images/employee1.jpg", alt: t("home.bandAlt.meeting") },
+    { src: "/images/employee2.jpg", alt: t("home.bandAlt.moving") },
+    { src: "/images/employee3.jpg", alt: t("home.bandAlt.working") },
   ];
-  // マーキー用：同じ並びを2回つなげて1セットとし、さらに2回描画して -50% 移動で途切れずループ
+  // マーキー用：1 セット（3 枚）を 2 回つなげて 6 枚にし、-50% 移動で途切れずループ。
+  // ※ パフォーマンス対策で従来の 12 枚描画から 6 枚に削減（半分のメモリ・GPU 使用量）
   const marqueePhotos = [...bandPhotos, ...bandPhotos];
 
   return (
@@ -37,7 +43,6 @@ export default function HomePage() {
           sizes="100vw"
           className="-z-10 object-cover"
         />
-        {/* 文字・カードを読みやすくするための淡いオーバーレイ */}
         <div
           aria-hidden
           className="absolute inset-0 -z-10 bg-gradient-to-b from-white/0 via-white/0 to-white/0"
@@ -47,27 +52,28 @@ export default function HomePage() {
         <div className="mx-auto max-w-5xl px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-28">
           <div className="max-w-2xl">
             <h1 className="lp-animate-slide-in-right text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              専門スキルを持ったエンジニアが、お客様の課題解決を支援します。
+              {t("home.heroTitle")}
             </h1>
             <p className="lp-animate-slide-in-right lp-delay-500 mt-5 text-base leading-relaxed text-slate-700 sm:text-lg">
-              システムエンジニア、インフラエンジニア、ヘルプデスクサポートなどのアウトソーシングサービスをご提供しています。第一線で活躍してきたスペシャリストが、未経験からのキャリア形成も含めて伴走します。
+              {t("home.heroBody")}
             </p>
           </div>
         </div>
 
-        {/* ライトパスの特徴（歯車背景の上に重ねる） */}
+        {/* ライトパスの特徴 */}
         <div className="mx-auto max-w-5xl px-4 pb-16 sm:px-6 sm:pb-20">
           <SectionTitle
-            eyebrow="Why us"
-            title="ライトパスの特徴"
-            description="第一線で活躍してきたスペシャリストが、専門性の高いサービスでお客様の IT 課題に伴走します。"
+            eyebrow={t("home.whyUsEyebrow")}
+            title={t("home.whyUsTitle")}
+            description={t("home.whyUsDesc")}
           />
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {homeFeatures.map((feature, index) => {
               const delay = ((index + 1) * 100) as 100 | 200 | 300;
+              const localizedTitle = pick(feature.title);
               return (
-                <Reveal key={feature.title} variant="fade-up-strong" delay={delay}>
-                  <FeatureCard title={feature.title} body={feature.body} />
+                <Reveal key={localizedTitle} variant="fade-up-strong" delay={delay}>
+                  <FeatureCard title={localizedTitle} body={pick(feature.body)} />
                 </Reveal>
               );
             })}
@@ -75,13 +81,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 採用情報・お問い合わせ（見本に合わせて1セクションに統合） */}
+      {/* 採用情報・お問い合わせ */}
       <section className="border-b border-border bg-background">
         <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20">
           <SectionTitle
-            eyebrow="Recruit & Contact"
-            title="採用情報・お問い合わせ"
-            description="会社を一緒に盛り上げてくれる仲間を募集しています。サービスや協業のご相談もお気軽にどうぞ。"
+            eyebrow={t("home.ctaEyebrow")}
+            title={t("home.ctaTitle")}
+            description={t("home.ctaDesc")}
           />
           <Reveal delay={100}>
             <div className="mt-10 flex flex-wrap gap-3">
@@ -89,39 +95,45 @@ export default function HomePage() {
                 href="/recruit"
                 className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
               >
-                採用情報を見る
+                {t("home.ctaRecruit")}
               </Link>
               <Link
                 href="/contact"
                 className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
               >
-                お問い合わせ
+                {t("home.ctaContact")}
               </Link>
               <Link
                 href="/company"
                 className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
               >
-                会社案内
+                {t("home.ctaCompany")}
               </Link>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* 写真バンド（背景 picture_bg.png ＋ 右から左へ流れるマーキー） */}
-      <section aria-label="社内・現場の様子" className="relative isolate overflow-hidden">
-        {/* 背景画像 */}
+      {/* 写真バンド（マーキー）
+          - lp-marquee-section クラスで content-visibility: auto を適用し、
+            画面外では描画計算を完全にスキップ（スクロール負荷の主因対策）
+          - 描画回数を [...marqueePhotos, ...marqueePhotos]（12 枚）から
+            marqueePhotos そのまま（6 枚）に削減 */}
+      <section
+        aria-label={t("home.bandAria")}
+        className="lp-marquee-section relative isolate overflow-hidden"
+      >
         <Image
           src="/images/picture_bg.png"
           alt=""
           fill
           sizes="100vw"
+          loading="lazy"
           className="-z-10 object-cover"
         />
         <div className="py-12 sm:py-16">
-          {/* marqueePhotos（2周分）をさらに2回描画し、-50% 移動で途切れずループ */}
           <div className="lp-marquee flex w-max items-stretch gap-6 px-3">
-            {[...marqueePhotos, ...marqueePhotos].map((photo, index) => (
+            {marqueePhotos.map((photo, index) => (
               <div
                 key={index}
                 className="relative aspect-[16/10] w-[72vw] shrink-0 overflow-hidden rounded-xl border border-white/60 shadow-md sm:w-[44vw] lg:w-[31vw]"
@@ -131,6 +143,7 @@ export default function HomePage() {
                   alt={photo.alt}
                   fill
                   sizes="(max-width: 640px) 72vw, (max-width: 1024px) 44vw, 31vw"
+                  loading="lazy"
                   className="object-cover"
                 />
               </div>

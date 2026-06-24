@@ -74,11 +74,13 @@ body {
   }
 }
 
-/* Reveal の初期状態（JS で in-view になるまで非表示） */
+/* Reveal の初期状態（JS で in-view になるまで非表示）
+   ★ will-change は意図的に外している：
+     1 ページに 20+ 個の Reveal があると同数の GPU レイヤーが作られ、
+     スクロール時に重くなるため。アニメ発火直前の Reveal.tsx 側で必要時のみ付与する。 */
 .reveal-init {
   opacity: 0;
   transform: translateY(16px);
-  will-change: opacity, transform;
 }
 
 /* JavaScript が無効な環境では reveal-init を解除し、コンテンツを表示する */
@@ -195,7 +197,13 @@ body {
 }
 
 /* 写真バンドのマーキー（右から左へ流れる）。
-   同じ並びを2回つなげたトラックを -50% 移動させることで途切れずにループします。 */
+   同じ並びを2回つなげたトラックを -50% 移動させることで途切れずにループします。
+
+   パフォーマンス対策：
+   - content-visibility: auto で画面外にあるときの描画を完全にスキップ
+     （スクロール時の負荷を大きく削減）
+   - contain-intrinsic-size で領域を予約してレイアウトシフトを防止
+*/
 @keyframes lp-marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -206,6 +214,11 @@ body {
 /* ホバー中は一時停止（気になる写真で止められる） */
 .lp-marquee:hover {
   animation-play-state: paused;
+}
+/* マーキーを内包するセクションは画面外で計算をスキップ */
+.lp-marquee-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 360px;
 }
 
 /* 「動きを減らす」設定の人には動きを最小化 */
