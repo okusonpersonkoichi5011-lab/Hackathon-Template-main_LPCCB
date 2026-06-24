@@ -23,20 +23,20 @@ export function Hero({ title, description, primaryCta, secondaryCta }: HeroProps
           <h1 className="lp-animate-fade-up text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
             {title}
           </h1>
-          <p className="lp-animate-fade-up lp-delay-100 mt-5 text-base leading-relaxed text-muted-foreground sm:text-lg">
+          <p className="lp-animate-fade-up lp-delay-100 mt-5 text-lg leading-relaxed text-muted-foreground sm:text-xl">
             {description}
           </p>
           <div className="lp-animate-fade-up lp-delay-200 mt-10 flex flex-wrap gap-3">
             <Link
               href={primaryCta.href}
-              className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 hover:-translate-y-0.5 hover:shadow-md"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-base font-medium text-primary-foreground transition hover:opacity-90 hover:-translate-y-0.5 hover:shadow-md"
             >
               {primaryCta.label}
             </Link>
             {secondaryCta ? (
               <Link
                 href={secondaryCta.href}
-                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-primary hover:text-slate-900 hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-base font-medium text-slate-800 transition hover:border-primary hover:text-slate-900 hover:-translate-y-0.5"
               >
                 {secondaryCta.label}
               </Link>

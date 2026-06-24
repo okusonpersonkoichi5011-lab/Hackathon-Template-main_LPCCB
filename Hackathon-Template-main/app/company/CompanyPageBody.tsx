@@ -47,12 +47,7 @@ export function CompanyPageBody() {
 
   return (
     <>
-      <PageHeader
-        src="/images/Company_header.png"
-        alt={t("company.pageAlt")}
-        width={1366}
-        height={188}
-      />
+      <PageHeader src="/images/Company_header.png" alt={t("company.pageAlt")} />
 
       <div className="bg-background">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-14">
@@ -78,7 +73,7 @@ export function CompanyPageBody() {
             />
             <Reveal>
               <div className="lp-hover-lift mt-6 overflow-hidden rounded-xl border border-border bg-surface">
-                <dl className="divide-y divide-border text-sm">
+                <dl className="divide-y divide-border text-base">
                   {companyProfile.map((row) => (
                     <div
                       key={row.label}
@@ -130,11 +125,11 @@ export function CompanyPageBody() {
                   />
                 </div>
                 <div className="p-6 sm:p-8">
-                  <p className="text-sm leading-relaxed text-slate-800">{t("company.messageP1")}</p>
-                  <p className="mt-4 text-sm leading-relaxed text-slate-800">
+                  <p className="text-base leading-relaxed text-slate-800">{t("company.messageP1")}</p>
+                  <p className="mt-4 text-base leading-relaxed text-slate-800">
                     {t("company.messageP2")}
                   </p>
-                  <p className="mt-6 text-sm font-medium text-slate-900">
+                  <p className="mt-6 text-base font-medium text-slate-900">
                     {t("company.messageSignature")}
                   </p>
                 </div>
@@ -170,7 +165,7 @@ export function CompanyPageBody() {
             />
             <Reveal variant="fade-up-strong">
               <div className="lp-hover-lift mt-8 rounded-xl border border-border bg-surface p-6">
-                <p className="text-sm leading-relaxed text-slate-800">
+                <p className="text-base leading-relaxed text-slate-800">
                   {t("company.trackBody")}
                 </p>
               </div>
@@ -199,23 +194,23 @@ export function CompanyPageBody() {
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
               <Reveal delay={100}>
                 <div className="lp-hover-lift h-full rounded-xl border border-border bg-surface p-6">
-                  <h3 className="text-sm font-semibold text-slate-900">
+                  <h3 className="text-base font-semibold text-slate-900">
                     {t("company.accessAddrTitle")}
                   </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-3 text-base leading-relaxed text-muted-foreground">
                     {contactAddress}
                   </p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-2 text-base leading-relaxed text-muted-foreground">
                     {contactHours}
                   </p>
                 </div>
               </Reveal>
               <Reveal delay={200}>
                 <div className="lp-hover-lift h-full rounded-xl border border-border bg-surface p-6">
-                  <h3 className="text-sm font-semibold text-slate-900">
+                  <h3 className="text-base font-semibold text-slate-900">
                     {t("company.accessTrainTitle")}
                   </h3>
-                  <ul className="mt-3 space-y-1 text-sm leading-relaxed text-muted-foreground">
+                  <ul className="mt-3 space-y-1 text-base leading-relaxed text-muted-foreground">
                     {trainLines.map((line) => (
                       <li key={line}>・{line}</li>
                     ))}
@@ -243,8 +238,8 @@ export function CompanyPageBody() {
                   thumbSizes="(max-width: 768px) 100vw, 300px"
                 />
                 <div>
-                  <p className="text-sm leading-relaxed text-slate-800">{landmark}</p>
-                  <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                  <p className="text-base leading-relaxed text-slate-800">{landmark}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                     {t("company.landmarkNote")}
                   </p>
                 </div>

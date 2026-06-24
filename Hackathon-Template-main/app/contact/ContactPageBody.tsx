@@ -25,16 +25,11 @@ export function ContactPageBody() {
 
   return (
     <>
-      <PageHeader
-        src="/images/Contact_header.png"
-        alt={t("contact.pageAlt")}
-        width={1366}
-        height={183}
-      />
+      <PageHeader src="/images/Contact_header.png" alt={t("contact.pageAlt")} />
 
       <div className="bg-background">
         <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-          <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <div className="space-y-4 text-base leading-relaxed text-muted-foreground">
             <p>{introP1}</p>
             {lang === "en" ? (
               <p>

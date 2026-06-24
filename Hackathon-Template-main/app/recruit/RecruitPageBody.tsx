@@ -108,12 +108,7 @@ export function RecruitPageBody() {
 
   return (
     <>
-      <PageHeader
-        src="/images/Recruit_header.png"
-        alt={t("recruit.pageAlt")}
-        width={1366}
-        height={186}
-      />
+      <PageHeader src="/images/Recruit_header.png" alt={t("recruit.pageAlt")} />
 
       <div className="bg-background">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-14">
@@ -121,7 +116,7 @@ export function RecruitPageBody() {
           <section>
             <Reveal variant="slide-right">
               <SectionTitle eyebrow="Recruit" title={pick(recruitLead.heading)} />
-              <div className="mt-4 space-y-4 text-sm leading-relaxed text-muted-foreground">
+              <div className="mt-4 space-y-4 text-base leading-relaxed text-muted-foreground">
                 {pick(recruitLead.paragraphs).map((paragraph, index) => (
                   <p key={index}>{paragraph}</p>
                 ))}
@@ -131,10 +126,10 @@ export function RecruitPageBody() {
 
           {/* 募集職種 */}
           <section className="mt-14">
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-slate-900">
               {t("recruit.openingsTitle")}
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground">{openingsDesc}</p>
+            <p className="mt-2 text-base text-muted-foreground">{openingsDesc}</p>
             <div className="mt-6 grid gap-6 lg:grid-cols-3">
               {jobOpenings.map((job, index) => {
                 const delay = ((index + 1) * 100) as 100 | 200 | 300;
@@ -149,9 +144,9 @@ export function RecruitPageBody() {
                         height={144}
                         className="h-28 w-28 object-contain sm:h-32 sm:w-32"
                       />
-                      <h3 className="mt-4 text-base font-semibold text-slate-900">{title}</h3>
-                      <p className="mt-2 text-xs text-accent">{pick(job.employmentType)}</p>
-                      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                      <h3 className="mt-4 text-lg font-semibold text-slate-900">{title}</h3>
+                      <p className="mt-2 text-sm text-accent">{pick(job.employmentType)}</p>
+                      <p className="mt-4 text-base leading-relaxed text-muted-foreground">
                         {pick(job.description)}
                       </p>
                     </article>
@@ -183,10 +178,10 @@ export function RecruitPageBody() {
               </Reveal>
               <div>
                 <Reveal variant="slide-right" delay={100}>
-                  <p className="text-base leading-relaxed text-muted-foreground">{membersIntro}</p>
+                  <p className="text-lg leading-relaxed text-muted-foreground">{membersIntro}</p>
                 </Reveal>
                 <Reveal variant="slide-right" delay={200}>
-                  <ul className="mt-4 space-y-2.5 text-base leading-relaxed text-slate-800">
+                  <ul className="mt-4 space-y-2.5 text-lg leading-relaxed text-slate-800">
                     {pick(idealCandidates).map((candidate) => (
                       <li key={candidate} className="flex items-start gap-2">
                         <span
@@ -208,7 +203,7 @@ export function RecruitPageBody() {
           {/* 応募の流れ */}
           <section className="mt-16">
             <SectionTitle eyebrow="Flow" title={t("recruit.flowTitle")} />
-            <p className="mt-2 text-sm text-muted-foreground">{flowDesc}</p>
+            <p className="mt-2 text-base text-muted-foreground">{flowDesc}</p>
             <div className="mt-8">
               {applicationFlow.map((flow, index) => {
                 const delay = delays[index % delays.length];
@@ -224,13 +219,13 @@ export function RecruitPageBody() {
                         {!isLast && <div aria-hidden className="w-0.5 grow bg-primary" />}
                       </div>
                       <div className={isLast ? "" : "pb-10"}>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-accent">
+                        <p className="text-sm font-semibold uppercase tracking-wider text-accent">
                           STEP {String(flow.step).padStart(2, "0")}
                         </p>
-                        <p className="mt-1 text-base font-semibold text-slate-900">
+                        <p className="mt-1 text-lg font-semibold text-slate-900">
                           {pick(flow.title)}
                         </p>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
                           {pick(flow.description)}
                         </p>
                       </div>
@@ -247,8 +242,8 @@ export function RecruitPageBody() {
               id="entry"
               className="mt-16 scroll-mt-28 rounded-xl border border-border bg-surface p-6 sm:p-8"
             >
-              <h2 className="text-lg font-semibold text-slate-900">{formHeading}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">{formIntro}</p>
+              <h2 className="text-xl font-semibold text-slate-900">{formHeading}</h2>
+              <p className="mt-2 text-base text-muted-foreground">{formIntro}</p>
 
               <div className="mt-8">
                 <RecruitForm />

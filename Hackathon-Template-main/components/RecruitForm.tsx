@@ -446,8 +446,8 @@ export function RecruitForm() {
     <div ref={containerRef} className="scroll-mt-24">
       {step === "done" ? (
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
-          <h2 className="text-lg font-semibold text-slate-900">{texts.doneTitle}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{texts.doneBody}</p>
+          <h2 className="text-xl font-semibold text-slate-900">{texts.doneTitle}</h2>
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground">{texts.doneBody}</p>
           <button
             type="button"
             onClick={() => {
@@ -456,22 +456,22 @@ export function RecruitForm() {
               setStep("input");
               scrollToFormTop();
             }}
-            className="mt-6 inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
+            className="mt-6 inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-base font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
           >
             {texts.submitAnother}
           </button>
         </div>
       ) : step === "confirm" ? (
         <form onSubmit={handleSendSubmit} className="space-y-6">
-          <p className="text-sm text-muted-foreground">{texts.confirmIntro}</p>
+          <p className="text-base text-muted-foreground">{texts.confirmIntro}</p>
           <dl className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
             {confirmRows.map(({ label, value }) => (
               <div
                 key={label}
                 className="grid grid-cols-1 gap-1 p-4 sm:grid-cols-[10rem_1fr] sm:gap-4 sm:p-5"
               >
-                <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-                <dd className="whitespace-pre-wrap break-words text-sm text-slate-900">
+                <dt className="text-base font-medium text-muted-foreground">{label}</dt>
+                <dd className="whitespace-pre-wrap break-words text-base text-slate-900">
                   {value || <span className="text-muted-foreground">{texts.notEntered}</span>}
                 </dd>
               </div>
@@ -480,14 +480,14 @@ export function RecruitForm() {
           <div className="flex flex-col gap-3 sm:flex-row-reverse">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-base font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
               {texts.sendDemo}
             </button>
             <button
               type="button"
               onClick={backToEdit}
-              className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-3 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
+              className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-3 text-base font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
             >
               {texts.edit}
             </button>
@@ -503,7 +503,7 @@ export function RecruitForm() {
           <FieldRow badge="required" label={texts.name} lang={lang}>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <div className="flex items-start gap-2">
-                <label htmlFor="lastName" className="w-10 shrink-0 pt-2 text-sm text-slate-700">
+                <label htmlFor="lastName" className="w-10 shrink-0 pt-2 text-base text-slate-700">
                   {texts.lastName}
                 </label>
                 <div className="flex-1">
@@ -523,7 +523,7 @@ export function RecruitForm() {
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <label htmlFor="firstName" className="w-10 shrink-0 pt-2 text-sm text-slate-700">
+                <label htmlFor="firstName" className="w-10 shrink-0 pt-2 text-base text-slate-700">
                   {texts.firstName}
                 </label>
                 <div className="flex-1">
@@ -552,7 +552,7 @@ export function RecruitForm() {
                 <div className="flex items-start gap-2">
                   <label
                     htmlFor="lastNameKana"
-                    className="w-10 shrink-0 pt-2 text-sm text-slate-700"
+                    className="w-10 shrink-0 pt-2 text-base text-slate-700"
                   >
                     {texts.lastNameKana}
                   </label>
@@ -574,7 +574,7 @@ export function RecruitForm() {
                 <div className="flex items-start gap-2">
                   <label
                     htmlFor="firstNameKana"
-                    className="w-10 shrink-0 pt-2 text-sm text-slate-700"
+                    className="w-10 shrink-0 pt-2 text-base text-slate-700"
                   >
                     {texts.firstNameKana}
                   </label>
@@ -684,15 +684,15 @@ export function RecruitForm() {
                 href="https://www.post.japanpost.jp/zipcode/index.html"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-slate-700 underline underline-offset-2 hover:text-slate-900"
+                className="text-sm text-slate-700 underline underline-offset-2 hover:text-slate-900"
               >
                 {texts.postalHelpLink}
               </a>
             </div>
-            <p id="postalCode-hint" className="mt-1 text-xs text-muted-foreground">
+            <p id="postalCode-hint" className="mt-1 text-sm text-muted-foreground">
               {texts.postalHint}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">{texts.postalAutoFill}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{texts.postalAutoFill}</p>
             <FieldError id="postalCode-error" error={errors.postalCode} />
           </FieldRow>
 
@@ -751,7 +751,7 @@ export function RecruitForm() {
               }
               className={inputClass(!!errors.streetAddress)}
             />
-            <p id="streetAddress-hint" className="mt-1 text-xs text-muted-foreground">
+            <p id="streetAddress-hint" className="mt-1 text-sm text-muted-foreground">
               {texts.streetHint}
             </p>
             <FieldError id="streetAddress-error" error={errors.streetAddress} />
@@ -781,7 +781,7 @@ export function RecruitForm() {
               {(
                 ["fulltime-newgrad", "fulltime-career", "parttime"] as EmploymentType[]
               ).map((type) => (
-                <label key={type} className="flex items-center gap-2 text-sm text-slate-900">
+                <label key={type} className="flex items-center gap-2 text-base text-slate-900">
                   <input
                     type="radio"
                     name="employmentType"
@@ -794,7 +794,7 @@ export function RecruitForm() {
                 </label>
               ))}
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">{texts.employmentNote}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{texts.employmentNote}</p>
           </FieldRow>
 
           {/* 履歴書（カスタム UI でブラウザ既定の日本語表示を回避） */}
@@ -817,17 +817,17 @@ export function RecruitForm() {
             <div className="flex flex-wrap items-center gap-3">
               <label
                 htmlFor="resumeFile"
-                className="inline-flex cursor-pointer items-center justify-center rounded bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
+                className="inline-flex cursor-pointer items-center justify-center rounded bg-primary px-3 py-1.5 text-base font-medium text-primary-foreground transition hover:opacity-90 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
               >
                 {data.resumeFile ? texts.changeFile : texts.chooseFile}
               </label>
-              <span className="text-xs text-slate-700">
+              <span className="text-sm text-slate-700">
                 {data.resumeFile
                   ? `${data.resumeFile.name}（${Math.round(data.resumeFile.size / 1024)} KB）`
                   : texts.noFileSelected}
               </span>
             </div>
-            <p id="resumeFile-hint" className="mt-1 text-xs text-muted-foreground">
+            <p id="resumeFile-hint" className="mt-1 text-sm text-muted-foreground">
               {texts.fileHint}
             </p>
             <FieldError id="resumeFile-error" error={errors.resumeFile} />
@@ -836,7 +836,7 @@ export function RecruitForm() {
           {/* 職務経歴 */}
           {!isNewGrad(data.employmentType) && (
             <FieldRow badge="required" label={texts.career} lang={lang}>
-              <div className="mb-3 flex flex-wrap gap-4 text-sm text-slate-900">
+              <div className="mb-3 flex flex-wrap gap-4 text-base text-slate-900">
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
@@ -894,17 +894,17 @@ export function RecruitForm() {
                   <div className="flex flex-wrap items-center gap-3">
                     <label
                       htmlFor="careerFile"
-                      className="inline-flex cursor-pointer items-center justify-center rounded bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
+                      className="inline-flex cursor-pointer items-center justify-center rounded bg-primary px-3 py-1.5 text-base font-medium text-primary-foreground transition hover:opacity-90 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
                     >
                       {data.careerFile ? texts.changeFile : texts.chooseFile}
                     </label>
-                    <span className="text-xs text-slate-700">
+                    <span className="text-sm text-slate-700">
                       {data.careerFile
                         ? `${data.careerFile.name}（${Math.round(data.careerFile.size / 1024)} KB）`
                         : texts.noFileSelected}
                     </span>
                   </div>
-                  <p id="careerFile-hint" className="mt-1 text-xs text-muted-foreground">
+                  <p id="careerFile-hint" className="mt-1 text-sm text-muted-foreground">
                     {texts.fileHint}
                   </p>
                   <FieldError id="careerFile-error" error={errors.careerFile} />
@@ -931,18 +931,18 @@ export function RecruitForm() {
 
           {/* 注意書きと送信ボタン */}
           <div className="space-y-5 pt-6">
-            <p className="text-xs text-muted-foreground">{texts.submitNote}</p>
+            <p className="text-sm text-muted-foreground">{texts.submitNote}</p>
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
+              className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-base font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
               {texts.review}
             </button>
 
-            <p className="pt-4 text-xs text-muted-foreground">{texts.contactNote}</p>
+            <p className="pt-4 text-sm text-muted-foreground">{texts.contactNote}</p>
             <Link
               href="/contact"
-              className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
+              className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-base font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
               {texts.contactCta}
             </Link>

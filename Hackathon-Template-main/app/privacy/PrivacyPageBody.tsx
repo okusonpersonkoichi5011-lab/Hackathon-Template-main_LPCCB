@@ -118,22 +118,17 @@ export function PrivacyPageBody() {
 
   return (
     <>
-      <PageHeader
-        src="/images/PrivacyP_header.png"
-        alt={t("privacy.pageAlt")}
-        width={1366}
-        height={183}
-      />
+      <PageHeader src="/images/PrivacyP_header.png" alt={t("privacy.pageAlt")} />
 
       <div className="bg-background">
         <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-          <p className="text-sm leading-relaxed text-muted-foreground">{intro}</p>
+          <p className="text-base leading-relaxed text-muted-foreground">{intro}</p>
 
           <div className="mt-10 space-y-8">
             {sections.map((section) => (
               <section key={section.heading}>
-                <h2 className="text-base font-semibold text-slate-900">{section.heading}</h2>
-                <div className="mt-3 space-y-2 text-sm leading-relaxed text-muted-foreground">
+                <h2 className="text-lg font-semibold text-slate-900">{section.heading}</h2>
+                <div className="mt-3 space-y-2 text-base leading-relaxed text-muted-foreground">
                   {section.body.map((line, index) => (
                     <p key={index}>{line}</p>
                   ))}
@@ -143,8 +138,8 @@ export function PrivacyPageBody() {
 
             {/* お問い合わせ窓口 */}
             <section>
-              <h2 className="text-base font-semibold text-slate-900">{contactHeading}</h2>
-              <div className="mt-3 space-y-1 text-sm leading-relaxed text-muted-foreground">
+              <h2 className="text-lg font-semibold text-slate-900">{contactHeading}</h2>
+              <div className="mt-3 space-y-1 text-base leading-relaxed text-muted-foreground">
                 <p>{contactName}</p>
                 <p>{contactAddr}</p>
                 <p>
@@ -155,7 +150,7 @@ export function PrivacyPageBody() {
             </section>
           </div>
 
-          <p className="mt-10 text-right text-xs text-muted-foreground">{enactedLabel}</p>
+          <p className="mt-10 text-right text-sm text-muted-foreground">{enactedLabel}</p>
         </div>
       </div>
     </>

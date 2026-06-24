@@ -36,10 +36,10 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-[1.6fr_auto_1fr] md:items-start">
           {/* 会社名・連絡先 */}
           <div>
-            <p className="text-lg font-bold text-slate-900">
+            <p className="text-xl font-bold text-slate-900">
               {lang === "en" ? siteConfig.siteNameEn : siteConfig.siteName}
             </p>
-            <div className="mt-4 space-y-1.5 text-sm leading-relaxed">
+            <div className="mt-4 space-y-1.5 text-base leading-relaxed">
               <p>{address}</p>
               <p>{businessHours}</p>
               <p>
@@ -73,7 +73,7 @@ export function Footer() {
           </div>
 
           {/* サイトナビ */}
-          <nav className="text-sm" aria-label={t("footer.navAria")}>
+          <nav className="text-base" aria-label={t("footer.navAria")}>
             <ul>
               {FOOTER_NAV_ITEMS.map((item) => (
                 <li key={item.href} className="border-b border-slate-500/40">
@@ -89,7 +89,7 @@ export function Footer() {
           </nav>
         </div>
 
-        <div className="mt-10 flex flex-col items-center gap-2 text-xs text-slate-700 sm:flex-row sm:justify-center sm:gap-4">
+        <div className="mt-10 flex flex-col items-center gap-2 text-sm text-slate-700 sm:flex-row sm:justify-center sm:gap-4">
           <Link href="/privacy" className="transition hover:text-slate-900 hover:underline">
             {t("footer.privacy")}
           </Link>

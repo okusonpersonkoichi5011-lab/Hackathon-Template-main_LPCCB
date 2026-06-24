@@ -17,7 +17,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
     <div
       role="group"
       aria-label={lang === "ja" ? "言語切替" : "Language"}
-      className={`inline-flex items-center overflow-hidden rounded-md border border-border bg-surface text-xs font-semibold ${className}`}
+      className={`inline-flex items-center overflow-hidden rounded-md border border-border bg-surface text-sm font-semibold ${className}`}
     >
       <button
         type="button"

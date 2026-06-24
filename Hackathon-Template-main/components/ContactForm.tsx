@@ -317,8 +317,8 @@ export function ContactForm() {
       {step === "done" ? (
         // 完了画面（デモ）
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
-          <h2 className="text-lg font-semibold text-slate-900">{texts.doneTitle}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{texts.doneBody}</p>
+          <h2 className="text-xl font-semibold text-slate-900">{texts.doneTitle}</h2>
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground">{texts.doneBody}</p>
           <button
             type="button"
             onClick={() => {
@@ -327,7 +327,7 @@ export function ContactForm() {
               setStep("input");
               scrollToFormTop();
             }}
-            className="mt-6 inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
+            className="mt-6 inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-base font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
           >
             {texts.sendAnother}
           </button>
@@ -335,15 +335,15 @@ export function ContactForm() {
       ) : step === "confirm" ? (
         // 確認画面
         <form onSubmit={handleSendSubmit} className="space-y-6">
-          <p className="text-sm text-muted-foreground">{texts.confirmIntro}</p>
+          <p className="text-base text-muted-foreground">{texts.confirmIntro}</p>
           <dl className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
             {confirmRows.map(({ label, value }) => (
               <div
                 key={label}
                 className="grid grid-cols-1 gap-1 p-4 sm:grid-cols-[10rem_1fr] sm:gap-4 sm:p-5"
               >
-                <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-                <dd className="whitespace-pre-wrap break-words text-sm text-slate-900">
+                <dt className="text-base font-medium text-muted-foreground">{label}</dt>
+                <dd className="whitespace-pre-wrap break-words text-base text-slate-900">
                   {value || <span className="text-muted-foreground">{texts.notEntered}</span>}
                 </dd>
               </div>
@@ -352,14 +352,14 @@ export function ContactForm() {
           <div className="flex flex-col gap-3 sm:flex-row-reverse">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-base font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
               {texts.sendDemo}
             </button>
             <button
               type="button"
               onClick={backToEdit}
-              className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-3 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
+              className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-3 text-base font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
             >
               {texts.edit}
             </button>
@@ -376,7 +376,7 @@ export function ContactForm() {
           <FieldRow badge="required" label={texts.name} lang={lang}>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <div className="flex items-start gap-2">
-                <label htmlFor="lastName" className="w-10 shrink-0 pt-2 text-sm text-slate-700">
+                <label htmlFor="lastName" className="w-10 shrink-0 pt-2 text-base text-slate-700">
                   {texts.lastName}
                 </label>
                 <div className="flex-1">
@@ -396,7 +396,7 @@ export function ContactForm() {
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <label htmlFor="firstName" className="w-10 shrink-0 pt-2 text-sm text-slate-700">
+                <label htmlFor="firstName" className="w-10 shrink-0 pt-2 text-base text-slate-700">
                   {texts.firstName}
                 </label>
                 <div className="flex-1">
@@ -425,7 +425,7 @@ export function ContactForm() {
                 <div className="flex items-start gap-2">
                   <label
                     htmlFor="lastNameKana"
-                    className="w-10 shrink-0 pt-2 text-sm text-slate-700"
+                    className="w-10 shrink-0 pt-2 text-base text-slate-700"
                   >
                     {texts.lastNameKana}
                   </label>
@@ -447,7 +447,7 @@ export function ContactForm() {
                 <div className="flex items-start gap-2">
                   <label
                     htmlFor="firstNameKana"
-                    className="w-10 shrink-0 pt-2 text-sm text-slate-700"
+                    className="w-10 shrink-0 pt-2 text-base text-slate-700"
                   >
                     {texts.firstNameKana}
                   </label>
@@ -538,15 +538,15 @@ export function ContactForm() {
                 href="https://www.post.japanpost.jp/zipcode/index.html"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-slate-700 underline underline-offset-2 hover:text-slate-900"
+                className="text-sm text-slate-700 underline underline-offset-2 hover:text-slate-900"
               >
                 {texts.postalHelpLink}
               </a>
             </div>
-            <p id="postalCode-hint" className="mt-1 text-xs text-muted-foreground">
+            <p id="postalCode-hint" className="mt-1 text-sm text-muted-foreground">
               {texts.postalHint}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">{texts.postalAutoFill}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{texts.postalAutoFill}</p>
             <FieldError id="postalCode-error" error={errors.postalCode} />
           </FieldRow>
 
@@ -603,7 +603,7 @@ export function ContactForm() {
               aria-describedby={errors.streetAddress ? "streetAddress-error" : "streetAddress-hint"}
               className={inputClass(!!errors.streetAddress)}
             />
-            <p id="streetAddress-hint" className="mt-1 text-xs text-muted-foreground">
+            <p id="streetAddress-hint" className="mt-1 text-sm text-muted-foreground">
               {texts.streetHint}
             </p>
             <FieldError id="streetAddress-error" error={errors.streetAddress} />
@@ -661,8 +661,8 @@ export function ContactForm() {
 
           {/* 注意書きと送信ボタン */}
           <div className="space-y-5 pt-6">
-            <p className="text-xs text-muted-foreground">{texts.submitNote}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">{texts.submitNote}</p>
+            <p className="text-sm text-muted-foreground">
               {texts.recruitNote}
               <Link
                 href="/recruit"
@@ -674,7 +674,7 @@ export function ContactForm() {
             </p>
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
+              className="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-base font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
             >
               {texts.review}
             </button>

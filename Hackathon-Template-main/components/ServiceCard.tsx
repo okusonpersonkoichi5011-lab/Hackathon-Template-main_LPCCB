@@ -32,11 +32,11 @@ export function ServiceCard({ service }: ServiceCardProps) {
           />
         </div>
         <div className="p-6 sm:p-8">
-          <h3 className="text-xl font-semibold text-slate-900">{pick(service.title)}</h3>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+          <h3 className="text-2xl font-semibold text-slate-900">{pick(service.title)}</h3>
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground sm:text-lg">
             {pick(service.summary)}
           </p>
-          <ul className="mt-5 space-y-2 text-sm text-slate-800">
+          <ul className="mt-5 space-y-2 text-base text-slate-800">
             {points.map((point, index) => (
               <li key={`${service.id}-${index}`} className="flex gap-2">
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FeatureCard } from "@/components/FeatureCard";
+import { HeroGearVideo } from "@/components/HeroGearVideo";
 import { Reveal } from "@/components/Reveal";
 import { SectionTitle } from "@/components/SectionTitle";
 import { homeFeatures } from "@/lib/data/homeFeatures";
@@ -33,19 +34,19 @@ export default function HomePage() {
 
   return (
     <>
-      {/* ヒーロー＋特徴（歯車背景を共通で敷く） */}
+      {/* ヒーロー＋特徴（歯車動画を背景に敷く）
+          - HeroGearVideo はループ再生（歯車は常時動くメタファー）
+          - opacity 0.6 と白系グラデーションでテキストの可読性を確保
+          - reduced-motion ユーザには静止画 PageTop_bg.png にフォールバック
+          - loopStart / loopEnd で繋ぎ目を調整可能：
+              繋ぎ目が気になる場合は loopEnd の秒数を 0.1 ずつ早めて試すと馴染みやすい */}
       <section className="relative isolate overflow-hidden border-b border-border">
-        <Image
-          src="/images/PageTop_bg.png"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="-z-10 object-cover"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10 bg-gradient-to-b from-white/0 via-white/0 to-white/0"
+        <HeroGearVideo
+          src="/images/top_gear.mp4"
+          poster="/images/PageTop_bg.png"
+          opacity={0.6}
+          loopStart={0}
+          loopEnd={3.35}
         />
 
         {/* キャッチコピー */}
@@ -54,7 +55,7 @@ export default function HomePage() {
             <h1 className="lp-animate-slide-in-right text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               {t("home.heroTitle")}
             </h1>
-            <p className="lp-animate-slide-in-right lp-delay-500 mt-5 text-base leading-relaxed text-slate-700 sm:text-lg">
+            <p className="lp-animate-slide-in-right lp-delay-500 mt-5 text-lg leading-relaxed text-slate-700 sm:text-xl">
               {t("home.heroBody")}
             </p>
           </div>
@@ -93,19 +94,19 @@ export default function HomePage() {
             <div className="mt-10 flex flex-wrap gap-3">
               <Link
                 href="/recruit"
-                className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
+                className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-base font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
               >
                 {t("home.ctaRecruit")}
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-base font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
               >
                 {t("home.ctaContact")}
               </Link>
               <Link
                 href="/company"
-                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-base font-medium text-slate-800 transition hover:-translate-y-0.5 hover:border-primary hover:text-slate-900"
               >
                 {t("home.ctaCompany")}
               </Link>

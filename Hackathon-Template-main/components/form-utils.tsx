@@ -20,7 +20,7 @@ export const HIRAGANA_RE = /^[぀-ゟ\s　]+$/;
 
 // ----- 入力欄の共通クラス（エラー時は赤枠） -----
 export const inputClass = (hasError: boolean) =>
-  `w-full rounded-md border bg-background px-3 py-2 text-sm text-slate-900 placeholder:text-muted-foreground focus:outline-2 focus:outline-offset-2 focus:outline-primary ${
+  `w-full rounded-md border bg-background px-3 py-2 text-base text-slate-900 placeholder:text-muted-foreground focus:outline-2 focus:outline-offset-2 focus:outline-primary ${
     hasError ? "border-red-500" : "border-border"
   }`;
 
@@ -32,7 +32,7 @@ export function Badge({ type, lang = "ja" }: { type: "required" | "optional"; la
   };
   return (
     <span
-      className={`inline-flex h-6 min-w-[3rem] items-center justify-center rounded px-2 text-xs font-bold text-white ${
+      className={`inline-flex h-7 min-w-[3.5rem] items-center justify-center rounded px-2 text-sm font-bold text-white ${
         type === "required" ? "bg-red-500" : "bg-emerald-500"
       }`}
     >
@@ -45,7 +45,7 @@ export function Badge({ type, lang = "ja" }: { type: "required" | "optional"; la
 export function FieldError({ id, error }: { id: string; error?: string }) {
   if (!error) return null;
   return (
-    <p id={id} role="alert" className="mt-1 text-xs font-medium text-red-600">
+    <p id={id} role="alert" className="mt-1 text-sm font-medium text-red-600">
       {error}
     </p>
   );
@@ -67,16 +67,16 @@ export function FieldRow({
   lang?: Lang;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-3 py-4 sm:grid-cols-[5rem_8rem_1fr] sm:items-start sm:gap-4 sm:py-5">
+    <div className="grid grid-cols-1 gap-3 py-4 sm:grid-cols-[5rem_10rem_1fr] sm:items-start sm:gap-4 sm:py-5">
       {/* バッジ（モバイルではラベルと横並び・PCでは左列） */}
       <div className="flex items-center gap-3 sm:block sm:pt-1">
         <Badge type={badge} lang={lang} />
-        <label htmlFor={htmlFor} className="text-sm font-medium text-slate-900 sm:hidden">
+        <label htmlFor={htmlFor} className="text-base font-medium text-slate-900 sm:hidden">
           {label}
         </label>
       </div>
       {/* PC用ラベル */}
-      <label htmlFor={htmlFor} className="hidden text-sm font-medium text-slate-900 sm:block sm:pt-1.5">
+      <label htmlFor={htmlFor} className="hidden text-base font-medium text-slate-900 sm:block sm:pt-1.5">
         {label}
       </label>
       {/* 入力欄エリア */}

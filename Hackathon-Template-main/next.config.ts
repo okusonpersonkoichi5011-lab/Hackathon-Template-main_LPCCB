@@ -54,6 +54,8 @@ function buildCSP(): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
+    // media-src：TOP ページの歯車動画 (mp4) を同一オリジンから再生するため明示
+    "media-src 'self'",
     connectSrc,
     "frame-src 'self' https://www.google.com https://maps.google.com",
     "frame-ancestors 'none'",

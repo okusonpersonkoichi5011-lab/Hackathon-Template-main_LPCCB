@@ -34,7 +34,7 @@ export function EmployeeInterviews({ interviews }: EmployeeInterviewsProps) {
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-controls="employee-interviews"
-          className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
+          className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-base font-medium text-primary-foreground transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md"
         >
           {buttonLabel}
         </button>
@@ -71,12 +71,12 @@ export function EmployeeInterviews({ interviews }: EmployeeInterviewsProps) {
                       />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{initial}</p>
-                      <p className="text-xs text-muted-foreground">{role}</p>
+                      <p className="text-base font-semibold text-slate-900">{initial}</p>
+                      <p className="text-sm text-muted-foreground">{role}</p>
                     </div>
                   </div>
-                  <p className="mt-4 text-sm font-semibold text-slate-900">Q. {question}</p>
-                  <div className="mt-2 flex-1 space-y-2 overflow-y-auto pr-1 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-4 text-base font-semibold text-slate-900">Q. {question}</p>
+                  <div className="mt-2 flex-1 space-y-2 overflow-y-auto pr-1 text-base leading-relaxed text-muted-foreground">
                     {answer.map((paragraph, idx) => (
                       <p key={idx}>{paragraph}</p>
                     ))}

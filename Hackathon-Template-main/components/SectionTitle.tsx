@@ -21,7 +21,7 @@ export function SectionTitle({ eyebrow, title, description }: SectionTitleProps)
     <div className="max-w-2xl">
       {eyebrow ? (
         <Reveal>
-          <p className="text-xs font-semibold uppercase tracking-wider text-accent">{eyebrow}</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-accent">{eyebrow}</p>
         </Reveal>
       ) : null}
       <Reveal delay={eyebrow ? 100 : undefined}>
@@ -32,7 +32,7 @@ export function SectionTitle({ eyebrow, title, description }: SectionTitleProps)
       </Reveal>
       {description ? (
         <Reveal delay={200}>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground sm:text-lg">
             {description}
           </p>
         </Reveal>

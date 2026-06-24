@@ -77,10 +77,10 @@ export function Header() {
               className="h-14 w-14 shrink-0 sm:h-16 sm:w-16"
             />
             <span className="flex flex-col leading-tight">
-              <span className="text-lg font-semibold text-slate-900 transition group-hover:opacity-70 sm:text-xl">
+              <span className="text-xl font-semibold text-slate-900 transition group-hover:opacity-70 sm:text-2xl">
                 {siteConfig.siteName}
               </span>
-              <span className="text-sm text-muted-foreground sm:text-base">
+              <span className="text-base text-muted-foreground sm:text-lg">
                 {siteConfig.siteNameEn}
               </span>
             </span>
@@ -89,7 +89,7 @@ export function Header() {
           {/* PC：横並びナビ + 右端に JP/EN 切替 */}
           <div className="hidden items-center gap-3 sm:flex">
             <nav
-              className="flex flex-wrap items-center justify-end gap-0.5 sm:max-w-[28rem] md:max-w-none lg:gap-1"
+              className="flex flex-wrap items-center justify-end gap-0.5 sm:max-w-[32rem] md:max-w-none lg:gap-1"
               aria-label={t("header.siteNameAria")}
             >
               {NAV_ITEMS.map((item) => {
@@ -99,7 +99,7 @@ export function Header() {
                     key={item.href}
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={`relative rounded-md px-2 py-2 text-sm transition hover:bg-muted hover:text-slate-900 md:px-3 md:text-base ${
+                    className={`relative rounded-md px-2 py-2 text-base transition hover:bg-muted hover:text-slate-900 md:px-3 md:text-lg ${
                       active
                         ? "font-semibold text-slate-900 after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-primary md:after:left-3 md:after:right-3"
                         : "text-slate-700"
@@ -164,7 +164,7 @@ export function Header() {
         }`}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <span className="text-sm font-semibold text-slate-900">{t("header.menuTitle")}</span>
+          <span className="text-base font-semibold text-slate-900">{t("header.menuTitle")}</span>
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -197,7 +197,7 @@ export function Header() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 onClick={() => setOpen(false)}
-                className={`block rounded-md px-3 py-3 text-base transition hover:bg-muted hover:text-slate-900 ${
+                className={`block rounded-md px-3 py-3 text-lg transition hover:bg-muted hover:text-slate-900 ${
                   active ? "bg-muted font-semibold text-slate-900" : "text-slate-700"
                 }`}
               >
