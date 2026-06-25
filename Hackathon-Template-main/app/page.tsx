@@ -35,18 +35,16 @@ export default function HomePage() {
   return (
     <>
       {/* ヒーロー＋特徴（歯車動画を背景に敷く）
-          - HeroGearVideo はループ再生（歯車は常時動くメタファー）
+          - HeroGearVideo はページ遷移時にふわっとフェードイン → 1 回だけ再生 → 終端で停止
           - opacity 0.6 と白系グラデーションでテキストの可読性を確保
           - reduced-motion ユーザには静止画 PageTop_bg.png にフォールバック
-          - loopStart / loopEnd で繋ぎ目を調整可能：
-              繋ぎ目が気になる場合は loopEnd の秒数を 0.1 ずつ早めて試すと馴染みやすい */}
+          - fadeInMs でフェードイン時間を調整可能（既定 1200ms） */}
       <section className="relative isolate overflow-hidden border-b border-border">
         <HeroGearVideo
           src="/images/top_gear.mp4"
           poster="/images/PageTop_bg.png"
           opacity={0.6}
-          loopStart={0}
-          loopEnd={3.35}
+          fadeInMs={1200}
         />
 
         {/* キャッチコピー */}

@@ -7,30 +7,20 @@ type Props = {
   src: string;
   /** 動画ロード前 / 再生不可時に出す静止画パス */
   poster: string;
-  /** 動画の不透明度（0.0〜1.0、既定 0.6 でテキスト可読性確保） */
+  /** 動画の最終的な不透明度（0.0〜1.0、既定 0.6 でテキスト可読性確保） */
   opacity?: number;
-  /**
-   * ループ開始位置（秒）。既定 0。
-   * 動画の冒頭に "助走" のような不自然な数フレームがある場合に少し進めると馴染む。
-   */
-  loopStart?: number;
-  /**
-   * ループ終了位置（秒）。指定しなければ動画末尾でループ。
-   * 末尾の数フレームが開始位置と合っていない場合、ここを早めに設定すると繋ぎ目が滑らかになる。
-   * 例：duration が 5.5 秒なら 5.3 などにすると最後の 0.2 秒を飛ばしてループ。
-   */
-  loopEnd?: number;
+  /** フェードインに要する時間（ミリ秒、既定 1200ms） */
+  fadeInMs?: number;
 };
 
 /**
- * TOP ページのヒーロー背景動画（歯車回転・ループ）
+ * TOP ページのヒーロー背景動画（歯車回転・1 回再生・終端停止）
  *
  * 再生方針：
- *  - HTML 標準の `autoPlay` + `loop` 属性で確実に再生・ループさせる（再生不能を防止）
- *  - JS は「loopEnd に達したら loopStart へジャンプ」する繋ぎ目調整のみ担当
- *    - loopEnd が duration より小さければ JS が先に発火 → 早めにループ
- *    - loopStart が 0 より大きければ初回ロード時に JS が currentTime を進める
- *  - loopStart=0 / loopEnd 未指定なら JS は何もせず、ブラウザ標準のループに任せる
+ *  - ページ遷移時に動画を「ふわーっと」フェードインさせる（opacity: 0 → target）
+ *  - HTML 標準の `autoPlay` 属性で 1 回だけ自動再生（`loop` は付けない）
+ *  - 再生が終わったら最終フレームで自動停止（ブラウザ既定動作のまま）
+ *  - 再 mount 時（別ページから戻って来た場合など）も先頭から 1 回だけ再生される
  *
  * その他の最適化：
  *  - prefers-reduced-motion ユーザには動画を出さず poster のみ
@@ -41,11 +31,12 @@ export function HeroGearVideo({
   src,
   poster,
   opacity = 0.6,
-  loopStart = 0,
-  loopEnd,
+  fadeInMs = 1200,
 }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  // 0 から始めて、マウント直後に目標値まで CSS トランジションでフェードイン
+  const [currentOpacity, setCurrentOpacity] = useState(0);
 
   // reduced-motion 設定検知
   useEffect(() => {
@@ -57,39 +48,37 @@ export function HeroGearVideo({
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  // ループ点ジャンプ制御（再生開始は autoPlay 属性に任せる）
+  // マウント直後に opacity を目標値へ上げる（フェードイン開始）
+  useEffect(() => {
+    if (reducedMotion) return;
+    // 次フレームで反映させて CSS transition を確実に発火させる
+    const id = window.requestAnimationFrame(() => {
+      setCurrentOpacity(opacity);
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [opacity, reducedMotion]);
+
+  // 念のため：終端到達時に明示的に一時停止（loop なしなので通常はブラウザ任せでも OK だが、
+  // 一部ブラウザで僅かに再生位置が巻き戻る挙動を防ぐ）
   useEffect(() => {
     const v = ref.current;
     if (!v || reducedMotion) return;
-
-    // 初回：loopStart が 0 より大きい場合のみ初期位置を進める
-    const onLoadedMetadata = () => {
-      if (loopStart > 0 && loopStart < v.duration) {
-        v.currentTime = loopStart;
+    const onEnded = () => {
+      // 終端で確実に停止し、最後のフレームを表示し続ける
+      try {
+        v.pause();
+        if (Number.isFinite(v.duration)) {
+          v.currentTime = v.duration;
+        }
+      } catch {
+        /* noop */
       }
     };
-    v.addEventListener("loadedmetadata", onLoadedMetadata);
+    v.addEventListener("ended", onEnded);
+    return () => v.removeEventListener("ended", onEnded);
+  }, [reducedMotion]);
 
-    // 再生中：loopEnd を超えたら loopStart へジャンプ
-    // ★ timeupdate は約 250ms 間隔でしか発火しないので、loopEnd が動画末尾の
-    //   ~0.2 秒以内だとネイティブ loop が先に発動して効かない問題があった。
-    //   setInterval で 50ms 周期に polling して確実に検出する。
-    let intervalId: number | undefined;
-    if (loopEnd != null) {
-      intervalId = window.setInterval(() => {
-        if (v.currentTime >= loopEnd) {
-          v.currentTime = loopStart;
-        }
-      }, 50);
-    }
-
-    return () => {
-      v.removeEventListener("loadedmetadata", onLoadedMetadata);
-      if (intervalId !== undefined) window.clearInterval(intervalId);
-    };
-  }, [loopStart, loopEnd, reducedMotion]);
-
-  // モーション縮減ユーザには動画を出さず poster で固定
+  // モーション縮減ユーザには動画を出さず poster で固定（フェードインも適用）
   if (reducedMotion) {
     return (
       <img
@@ -97,6 +86,7 @@ export function HeroGearVideo({
         alt=""
         aria-hidden
         className="absolute inset-0 -z-10 h-full w-full object-cover"
+        style={{ opacity }}
       />
     );
   }
@@ -108,12 +98,14 @@ export function HeroGearVideo({
         muted
         playsInline
         autoPlay
-        loop
         preload="metadata"
         poster={poster}
         aria-hidden
         className="absolute inset-0 -z-10 h-full w-full object-cover"
-        style={{ opacity }}
+        style={{
+          opacity: currentOpacity,
+          transition: `opacity ${fadeInMs}ms ease-out`,
+        }}
       >
         <source src={src} type="video/mp4" />
       </video>
