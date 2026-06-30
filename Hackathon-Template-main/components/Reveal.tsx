@@ -82,6 +82,19 @@ export function Reveal({
     const node = ref.current;
     if (!node) return;
 
+    // ① マウント時にすでにビューポート内なら即時表示（最重要の取りこぼし防止）
+    //   - 「リロード時に上に来てしまった要素が消える」「上の方の要素が出ない」を防ぐ
+    //   - rootMargin はここでは無視して、純粋な可視判定で OK
+    const rect = node.getBoundingClientRect();
+    const viewportH = window.innerHeight || document.documentElement.clientHeight;
+    const viewportW = window.innerWidth || document.documentElement.clientWidth;
+    const alreadyVisible =
+      rect.top < viewportH && rect.bottom > 0 && rect.left < viewportW && rect.right > 0;
+    if (alreadyVisible) {
+      setInView(true);
+      return; // Observer 不要、安全網タイマー不要
+    }
+
     const observer = getSharedObserver(rootMargin);
     if (!observer) {
       // 非対応環境では即時表示
@@ -89,12 +102,16 @@ export function Reveal({
       return;
     }
 
-    // 安全網：1.5 秒経過したら必ず表示（IntersectionObserver が発火しないレアケースの保険）
+    // ② 安全網タイマー：8 秒（Observer 完全停止時の最終保険）
+    //    ★ 短くしすぎると「下の方のコンテンツがスクロール前に勝手にフェード完了 →
+    //       到達時に既表示でアニメが効かない」現象を生むため、8 秒と長めに設定。
+    //    上の方の要素は ①（同期可視判定）で即時表示されるので、ここに到達する
+    //    のは「下の方の Reveal がスクロールを待っている」状態だけ。
     const safetyTimer = window.setTimeout(() => {
       setInView(true);
       observer.unobserve(node);
       callbacks.delete(node);
-    }, 1500);
+    }, 8000);
 
     callbacks.set(node, () => {
       setInView(true);

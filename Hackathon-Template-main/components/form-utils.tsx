@@ -5,7 +5,7 @@ import type { Lang } from "@/lib/i18n/types";
 
 /**
  * フォーム共通ユーティリティ（ContactForm / RecruitForm が共有）
- * - 必須バッジ＝赤、任意バッジ＝緑
+ * - 必須バッジ＝赤、任意バッジ＝灰色
  * - 入力欄共通スタイル、エラー表示、3カラム行レイアウト
  * - 郵便番号 → 住所自動取得（zipcloud API）
  *
@@ -24,7 +24,7 @@ export const inputClass = (hasError: boolean) =>
     hasError ? "border-red-500" : "border-border"
   }`;
 
-// ----- 必須=赤 / 任意=緑 バッジ（日英切替） -----
+// ----- 必須=赤 / 任意=灰色 バッジ（日英切替） -----
 export function Badge({ type, lang = "ja" }: { type: "required" | "optional"; lang?: Lang }) {
   const labelMap = {
     required: { ja: "必須", en: "Required" },
@@ -33,7 +33,7 @@ export function Badge({ type, lang = "ja" }: { type: "required" | "optional"; la
   return (
     <span
       className={`inline-flex h-7 min-w-[3.5rem] items-center justify-center rounded px-2 text-sm font-bold text-white ${
-        type === "required" ? "bg-red-500" : "bg-emerald-500"
+        type === "required" ? "bg-red-500" : "bg-slate-400"
       }`}
     >
       {labelMap[type][lang]}

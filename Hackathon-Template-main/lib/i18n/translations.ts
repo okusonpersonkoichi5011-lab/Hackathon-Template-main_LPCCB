@@ -51,6 +51,7 @@ export const translations = {
     whyUsEyebrow: { ja: "Why us", en: "Why us" },
     whyUsTitle: { ja: "ライトパスの特徴", en: "What sets Light Path apart" },
     whyUsDesc: {
+      // ★ 1 行収まり優先：句読点を減らしてやや短めの言い回しに（依頼 #1）
       ja: "第一線で活躍してきたスペシャリストが、専門性の高いサービスでお客様の IT 課題に伴走します。",
       en: "Our seasoned specialists tackle your IT challenges with deeply specialised services.",
     },
@@ -68,6 +69,9 @@ export const translations = {
       meeting: { ja: "打ち合わせの様子", en: "Team meeting" },
       moving: { ja: "社員が移動する様子", en: "Staff on the move" },
       working: { ja: "作業に取り組む様子", en: "Engineer at work" },
+      teamwork: { ja: "チームで取り組む様子", en: "Teamwork in action" },
+      casual: { ja: "和やかな雰囲気の社員", en: "Members in a relaxed mood" },
+      together: { ja: "メンバーで集まる様子", en: "Members gathering together" },
     },
   },
 
@@ -94,8 +98,8 @@ export const translations = {
       },
       business: { ja: "事業内容", en: "Business" },
       businessValue: {
-        ja: "システムエンジニアリングサービス、インフラエンジニアリングサービス、ヘルプデスク・サポートデスク アウトソーシング",
-        en: "System engineering, infrastructure engineering, and help-desk / support-desk outsourcing services",
+        ja: "システムエンジニアリングサービス、インフラエンジニアリングサービス、ヘルプデスク・サポートデスク、アウトソーシング",
+        en: "System engineering, infrastructure engineering, help-desk / support-desk, and outsourcing services",
       },
       license: { ja: "許認可・資格", en: "License" },
       licenseValue: {
@@ -113,8 +117,8 @@ export const translations = {
       en: "CEO Seiji Nosaka",
     },
     messageP1: {
-      ja: "「Unleash your potential（潜在能力を解放する）」私達は誰もが皆、本人も気が付かない程の無限の可能性を持っています。株式会社ライトパスは、個々人が自身のスキルや才能を最大限に活かし、成長し続けるための道しるべの様な存在でありたいと願っています。",
-      en: "\"Unleash your potential.\" Every one of us holds limitless possibilities, often more than we realize ourselves. At Light Path, we aim to be a guiding light that helps each person bring out their skills and talents to the fullest and keep on growing.",
+      ja: "私達は誰もが皆、本人も気が付かない程の無限の可能性を持っています。株式会社ライトパスは、個々人が自身のスキルや才能を最大限に活かし、成長し続けるための道しるべの様な存在でありたいと願っています。",
+      en: "Every one of us holds limitless possibilities, often more than we realize ourselves. At Light Path, we aim to be a guiding light that helps each person bring out their skills and talents to the fullest and keep on growing.",
     },
     messageP2: {
       ja: "昨今の企業活動では、どの様な組織においても「DX 推進」や「リスキリング」の必要性が叫ばれております。一方で、IT エンジニア不足が深刻化しており、人材の確保・育成がますます重要となっております。私達は、個々人の可能性に光をあて、1 人でも多くの IT エンジニアを育成・輩出し、企業の DX 化を通して世の中に貢献していきます。",
@@ -137,14 +141,14 @@ export const translations = {
       en: "A selection of clients we have supported to date.",
     },
     trackBody: {
-      ja: "楽天グループ株式会社　他",
-      en: "Rakuten Group, Inc., and others",
+      ja: "楽天グループ株式会社、株式会社NTTドコモ、丸紅情報システムズ株式会社、株式会社コシダカホールディングス、Sky株式会社、他",
+      en: "Rakuten Group, Inc.; NTT DOCOMO, Inc.; Marubeni Information Systems Co., Ltd.; KOSHIDAKA HOLDINGS Co., Ltd.; Sky Co., Ltd.; and others",
     },
     accessEyebrow: { ja: "Access", en: "Access" },
     accessTitle: { ja: "アクセスマップ", en: "Access Map" },
     accessDesc: {
-      ja: "各線の渋谷駅から徒歩 5〜10 分ほど。「道玄坂上交番前」交差点から道玄坂を少し上った、左手の建物にあります。",
-      en: "About 5 to 10 minutes on foot from Shibuya Station. From the Dogenzaka-ue Koban-mae intersection, walk a little way up Dogenzaka and look for the building on your left.",
+      ja: "詳しくは下記「アクセス情報」をご確認ください。",
+      en: "See the Landmark section below for details.",
     },
     accessMapTitle: {
       ja: "株式会社ライトパス 所在地の地図",

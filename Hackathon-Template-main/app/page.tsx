@@ -23,13 +23,17 @@ export default function HomePage() {
   const { t, pick } = useLanguage();
 
   // alt テキストも辞書から取得（日英で適切な説明文に切替）
+  // 6 枚構成：employee1〜4（従来＋新規）＋ employee6, 7（employee5 は構図が
+  //          employee6 と類似のため除外）
   const bandPhotos = [
     { src: "/images/employee1.jpg", alt: t("home.bandAlt.meeting") },
     { src: "/images/employee2.jpg", alt: t("home.bandAlt.moving") },
     { src: "/images/employee3.jpg", alt: t("home.bandAlt.working") },
+    { src: "/images/employee4.jpg", alt: t("home.bandAlt.teamwork") },
+    { src: "/images/employee6.jpg", alt: t("home.bandAlt.casual") },
+    { src: "/images/employee7.jpg", alt: t("home.bandAlt.together") },
   ];
-  // マーキー用：1 セット（3 枚）を 2 回つなげて 6 枚にし、-50% 移動で途切れずループ。
-  // ※ パフォーマンス対策で従来の 12 枚描画から 6 枚に削減（半分のメモリ・GPU 使用量）
+  // マーキー用：1 セット（6 枚）を 2 回つなげて 12 枚にし、-50% 移動で途切れずループ。
   const marqueePhotos = [...bandPhotos, ...bandPhotos];
 
   return (
@@ -66,12 +70,18 @@ export default function HomePage() {
             title={t("home.whyUsTitle")}
             description={t("home.whyUsDesc")}
           />
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {homeFeatures.map((feature, index) => {
               const delay = ((index + 1) * 100) as 100 | 200 | 300;
               const localizedTitle = pick(feature.title);
               return (
-                <Reveal key={localizedTitle} variant="fade-up-strong" delay={delay}>
+                // h-full：3 枚のカードを最も背の高いカードに揃える（依頼 #3）
+                <Reveal
+                  key={localizedTitle}
+                  variant="fade-up-strong"
+                  delay={delay}
+                  className="h-full"
+                >
                   <FeatureCard title={localizedTitle} body={pick(feature.body)} />
                 </Reveal>
               );

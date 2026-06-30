@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 type Props = {
   /** mp4 動画のパス */
@@ -34,37 +34,13 @@ export function HeroGearVideo({
   fadeInMs = 1200,
 }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  // 0 から始めて、マウント直後に目標値まで CSS トランジションでフェードイン
-  const [currentOpacity, setCurrentOpacity] = useState(0);
 
-  // reduced-motion 設定検知
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  // マウント直後に opacity を目標値へ上げる（フェードイン開始）
-  useEffect(() => {
-    if (reducedMotion) return;
-    // 次フレームで反映させて CSS transition を確実に発火させる
-    const id = window.requestAnimationFrame(() => {
-      setCurrentOpacity(opacity);
-    });
-    return () => window.cancelAnimationFrame(id);
-  }, [opacity, reducedMotion]);
-
-  // 念のため：終端到達時に明示的に一時停止（loop なしなので通常はブラウザ任せでも OK だが、
+  // 終端到達時に明示的に一時停止（loop なしなので通常はブラウザ任せでも OK だが、
   // 一部ブラウザで僅かに再生位置が巻き戻る挙動を防ぐ）
   useEffect(() => {
     const v = ref.current;
-    if (!v || reducedMotion) return;
+    if (!v) return;
     const onEnded = () => {
-      // 終端で確実に停止し、最後のフレームを表示し続ける
       try {
         v.pause();
         if (Number.isFinite(v.duration)) {
@@ -76,20 +52,16 @@ export function HeroGearVideo({
     };
     v.addEventListener("ended", onEnded);
     return () => v.removeEventListener("ended", onEnded);
-  }, [reducedMotion]);
+  }, []);
 
-  // モーション縮減ユーザには動画を出さず poster で固定（フェードインも適用）
-  if (reducedMotion) {
-    return (
-      <img
-        src={poster}
-        alt=""
-        aria-hidden
-        className="absolute inset-0 -z-10 h-full w-full object-cover"
-        style={{ opacity }}
-      />
-    );
-  }
+  // フェードインは CSS アニメーション（@keyframes lp-hero-fade-in）に任せる：
+  //   - SSR / CSR 双方で確実に発火
+  //   - React 状態に依存しないのでハイドレーション遅延で消えない
+  //   - prefers-reduced-motion 環境では CSS 側で animation を無効化 → 即・最終 opacity 表示
+  const fadeStyle: React.CSSProperties = {
+    opacity,
+    animation: `lp-hero-fade-in ${fadeInMs}ms ease-out both`,
+  };
 
   return (
     <>
@@ -101,11 +73,8 @@ export function HeroGearVideo({
         preload="metadata"
         poster={poster}
         aria-hidden
-        className="absolute inset-0 -z-10 h-full w-full object-cover"
-        style={{
-          opacity: currentOpacity,
-          transition: `opacity ${fadeInMs}ms ease-out`,
-        }}
+        className="lp-hero-fade absolute inset-0 -z-10 h-full w-full object-cover"
+        style={fadeStyle}
       >
         <source src={src} type="video/mp4" />
       </video>

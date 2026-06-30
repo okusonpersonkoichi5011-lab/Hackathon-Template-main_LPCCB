@@ -45,8 +45,8 @@ export function RecruitPageBody() {
 
   const formIntro =
     lang === "en"
-      ? "The form fields mirror the official application. Submissions are not actually sent in this demo (can be swapped to Formspree or Server Actions later)."
-      : "公式サイトの応募フォームに準拠した項目構成です。入力しても送信されません（ハッカソン後に Formspree や Server Actions に差し替え可能）。";
+      ? "Submissions are not actually sent in this demo (can be swapped to Formspree or Server Actions later)."
+      : "入力しても送信されません（ハッカソン後に Formspree や Server Actions に差し替え可能）。";
 
   const formHeading =
     lang === "en" ? "Application Form (demo)" : "エントリーフォーム（デモ）";
@@ -54,7 +54,8 @@ export function RecruitPageBody() {
   const membersTitle =
     lang === "en" ? "People who join us tend to be…" : "こんな人が集まっています！";
 
-  // 「こんな人が集まっています！」のカルーセル画像（5枚）
+  // 「こんな人が集まっています！」のカルーセル画像（4 枚）
+  // ※ recruit-carousel-3.jpg は使用許可が下りなかったため除外
   // ファイル名は ASCII セーフな形に統一済み（public/images 配下）
   const carouselImages = [
     {
@@ -68,10 +69,6 @@ export function RecruitPageBody() {
       src: "/images/recruit-carousel-2.jpg",
       alt:
         lang === "en" ? "Casual conversation between colleagues" : "和やかに会話する社員",
-    },
-    {
-      src: "/images/recruit-carousel-3.jpg",
-      alt: lang === "en" ? "Team gathering moment" : "チームで集まる様子",
     },
     {
       src: "/images/recruit-carousel-4.jpg",

@@ -63,6 +63,17 @@ body {
   }
 }
 
+/* HeroGearVideo 専用：要素の style 属性で指定した目標 opacity を
+   フェードインの終端値として活用するため、from 0 → to (inherit) ではなく
+   両端を 0 / 1 にして style の opacity をそのまま終端表示にする。
+   ※ video の style="opacity:0.6; animation:..." と組み合わせると
+      0 → 0.6 の遷移になる（CSS animation は要素の現在値からの相対遷移）。 */
+@keyframes lp-hero-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes lp-scale-in {
   from {
     opacity: 0;
@@ -77,16 +88,31 @@ body {
 /* Reveal の初期状態（JS で in-view になるまで非表示）
    ★ will-change は意図的に外している：
      1 ページに 20+ 個の Reveal があると同数の GPU レイヤーが作られ、
-     スクロール時に重くなるため。アニメ発火直前の Reveal.tsx 側で必要時のみ付与する。 */
+     スクロール時に重くなるため。アニメ発火直前の Reveal.tsx 側で必要時のみ付与する。
+   ★ CSS フォールバック：万一 JS バンドルが読み込めない／例外で停止しても
+     最終的に必ず表示されるよう、保険のキーフレームを仕込む。
+     ★ delay を 10s と長めに取る理由：短くするとスクロール待ちの下方コンテンツが
+       「ユーザが到達する前に勝手にフェード完了 → スクロールしてもアニメが発火しない」
+       現象を生む。React/Observer が機能していれば 10 秒も待たずに上書きされるので
+       実害なく、JS 完全停止時のみ最後の砦として効く。 */
 .reveal-init {
   opacity: 0;
   transform: translateY(16px);
+  animation: lp-reveal-fallback 0s ease-out 10s forwards;
 }
 
-/* JavaScript が無効な環境では reveal-init を解除し、コンテンツを表示する */
+@keyframes lp-reveal-fallback {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* JavaScript が無効な環境では reveal-init を解除し、コンテンツを即時表示する */
 .no-js .reveal-init {
   opacity: 1 !important;
   transform: none !important;
+  animation: none !important;
 }
 
 /* Reveal が in-view になった後に付与する状態（フェードイン完了） */
@@ -208,8 +234,10 @@ body {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
+/* duration は写真枚数（現在 6 枚）に応じて調整。1 枚あたり ~8.7 秒で
+   流れるように 52s に設定（旧 32s / 3 枚 ≒ 10.7s/枚 とほぼ同等の体感速度） */
 .lp-marquee {
-  animation: lp-marquee 32s linear infinite;
+  animation: lp-marquee 52s linear infinite;
 }
 /* ホバー中は一時停止（気になる写真で止められる） */
 .lp-marquee:hover {
@@ -240,6 +268,10 @@ body {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+  }
+  /* HeroGearVideo の CSS フェードインも無効化（目標 opacity で即表示） */
+  .lp-hero-fade {
+    animation: none !important;
   }
   .lp-hover-lift,
   .lp-card-hover-zoom {

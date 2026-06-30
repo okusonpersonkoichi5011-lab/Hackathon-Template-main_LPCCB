@@ -37,8 +37,8 @@ export const jobOpenings: JobItem[] = [
     },
     employmentType: { ja: "正社員", en: "Full-time" },
     description: {
-      ja: "サーバー／ネットワーク／DB／セキュリティなど、インフラ領域の設計・構築・運用に関わります。現場で必要なスキルを段階的に身につけられます。",
-      en: "Design, build and operate IT infrastructure, including servers, networks, databases and security. Pick up the skills you need on the job, step by step.",
+      ja: "サーバー／ネットワーク／DB／セキュリティなど、インフラ領域の設計・構築・運用に関わります。現場で必要なスキルを段階的に身につけることができます。",
+      en: "Design, build and operate IT infrastructure, including servers, networks, databases and security. You can pick up the skills you need on the job, step by step.",
     },
     icon: "/images/Recruit2.png",
   },
@@ -49,8 +49,8 @@ export const jobOpenings: JobItem[] = [
     },
     employmentType: { ja: "正社員", en: "Full-time" },
     description: {
-      ja: "社内 IT 問い合わせ対応やキッティングなどを担当。コミュニケーション力を活かしつつ、IT の基礎から実務スキルまで幅広く成長できます。",
-      en: "Handle internal IT inquiries and device kitting. Put your communication skills to work while growing across IT, from fundamentals to applied skills.",
+      ja: "社内 IT 問い合わせ対応やキッティングなどを担当します。コミュニケーション力を活かしつつ、IT の基礎から実務スキルまで幅広く成長できます。",
+      en: "You'll handle internal IT inquiries and device kitting. Put your communication skills to work while growing across IT, from fundamentals to applied skills.",
     },
     icon: "/images/Recruit3.png",
   },
@@ -125,8 +125,8 @@ export const applicationFlow: ApplicationStep[] = [
     step: 5,
     title: { ja: "就業開始", en: "Your first day" },
     description: {
-      ja: "現場デビュー。ここからエンジニアキャリアのスタートです。配属後もスタッフが継続してサポートします。",
-      en: "You make your on-site debut, the start of your engineering career. Our staff keep supporting you after placement, too.",
+      ja: "ここからエンジニアキャリアのスタートです。配属後もスタッフが継続してサポートします。",
+      en: "This is the start of your engineering career. Our staff keep supporting you after placement, too.",
     },
   },
 ];

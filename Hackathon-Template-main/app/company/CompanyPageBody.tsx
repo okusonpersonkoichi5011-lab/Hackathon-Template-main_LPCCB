@@ -124,7 +124,9 @@ export function CompanyPageBody() {
                     className="object-cover"
                   />
                 </div>
-                <div className="p-6 sm:p-8">
+                {/* word-break:keep-all：日本語の固有名詞（株式会社ライトパス等）が
+                    変な位置で改行されないようにする（依頼 #6） */}
+                <div className="p-6 sm:p-8 [word-break:keep-all]">
                   <p className="text-base leading-relaxed text-slate-800">{t("company.messageP1")}</p>
                   <p className="mt-4 text-base leading-relaxed text-slate-800">
                     {t("company.messageP2")}
